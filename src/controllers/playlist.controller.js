@@ -5,21 +5,6 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 const createPlaylist = asyncHandler(async (req, res, next) => {
-  const { name, description } = req.body;
-
-  //TODO: create playlist
-  if (name.trim("") == "" || description.trim("") == "") {
-    return next(new ApiError(401, "name and description are required"));
-  }
-  try {
-    const owner = req.user;
-
-    const playlist = await Playlist.create({
-      name,
-      description,
-      videos,
-      owner,
-    });
   try {
     const { name, description } = req.body;
 
@@ -39,20 +24,50 @@ const createPlaylist = asyncHandler(async (req, res, next) => {
       return next(new ApiError(500, "Failed to create playlist"));
     }
 
-    return res.status(201).json(new ApiResponse(201, playlist, "Playlist created successfully"));
+    return res
+      .status(201)
+      .json(new ApiResponse(201, playlist, "Playlist created successfully"));
   } catch (error) {
     next(new ApiError(500, error.message || "Internal server error"));
   }
 });
 
-const getUserPlaylists = asyncHandler(async (req, res) => {
+const getUserPlaylists = asyncHandler(async (req, res, next) => {
   const { userId } = req.params;
   //TODO: get user playlists
+  // Validate userId
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    return next(new ApiError(400, "Invalid user ID"));
+  }
+  try {
+    const playlists = await Playlist.aggregate([
+      {
+        $match: { owner: new mongoose.Types.ObjectId(userId) },
+      },
+    ]);
+    console.log(playlists);
+  } catch (error) {
+    next(new ApiError(500, error || "Internet Server Error"));
+  }
 });
 
-const getPlaylistById = asyncHandler(async (req, res,next) => {
+const getPlaylistById = asyncHandler(async (req, res, next) => {
   const { playlistId } = req.params;
   //TODO: get playlist by id
+  if (!mongoose.Types.ObjectId.isValid(playlistId)) {
+    return next(new ApiError(401, "Invalid Playlist ID"));
+  }
+  try {
+    const playlist = await Playlist.findById(playlistId);
+    if (!playlist) {
+      return next(401, "Playlist not found in the database");
+    }
+    return res
+      .status(200)
+      .json(new ApiResponse(200, playlist, "Fetched Playlist Successfully"));
+  } catch (error) {
+    next(new ApiError(500, error || "Internet Server Error"));
+  }
 });
 
 const addVideoToPlaylist = asyncHandler(async (req, res) => {
