@@ -6,20 +6,20 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 
 const createPlaylist = asyncHandler(async (req, res, next) => {
   const { name, description } = req.body;
-  console.log(req.user, "owner");
+
   //TODO: create playlist
   if (name.trim("") == "" || description.trim("") == "") {
     return next(new ApiError(401, "name and description are required"));
   }
   try {
     const owner = req.user;
-    console.log(owner, "owner");
-    // const playlist=await Playlist.create({
-    //     name,
-    //     description,
-    //     videos,
-    //     owner,
-    // })
+
+    const playlist = await Playlist.create({
+      name,
+      description,
+      videos,
+      owner,
+    });
   } catch (error) {
     return next(new ApiError(500, "internet server error"));
   }
