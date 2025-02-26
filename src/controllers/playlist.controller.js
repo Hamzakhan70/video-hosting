@@ -20,8 +20,28 @@ const createPlaylist = asyncHandler(async (req, res, next) => {
       videos,
       owner,
     });
+  try {
+    const { name, description } = req.body;
+
+    // Validate input
+    if (!name?.trim() || !description?.trim()) {
+      return next(new ApiError(400, "Name and description are required"));
+    }
+
+    // Create playlist
+    const playlist = await Playlist.create({
+      name,
+      description,
+      owner: req.user._id, // Ensure only the user ID is stored
+    });
+
+    if (!playlist) {
+      return next(new ApiError(500, "Failed to create playlist"));
+    }
+
+    return res.status(201).json(new ApiResponse(201, playlist, "Playlist created successfully"));
   } catch (error) {
-    return next(new ApiError(500, "internet server error"));
+    next(new ApiError(500, error.message || "Internal server error"));
   }
 });
 
@@ -30,7 +50,7 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
   //TODO: get user playlists
 });
 
-const getPlaylistById = asyncHandler(async (req, res) => {
+const getPlaylistById = asyncHandler(async (req, res,next) => {
   const { playlistId } = req.params;
   //TODO: get playlist by id
 });
