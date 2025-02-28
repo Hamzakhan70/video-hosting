@@ -93,6 +93,7 @@ const getLikedVideos = asyncHandler(async (req, res, next) => {
         const allVideos = await Like.aggregate([
             { $match: { likedBy: new mongoose.Types.ObjectId(req.user._id) } },
             { $lookup: { from: "videos", localField: "video", foreignField: "_id", as: "videoDetails" } },
+            { $unwind: "$videoDetails" },
             { $project: { videoDetails: 1, _id: 0 } }
 
 
