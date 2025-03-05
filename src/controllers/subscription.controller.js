@@ -12,9 +12,9 @@ const toggleSubscription = asyncHandler(async (req, res, next) => {
   if (!mongoose.Types.ObjectId.isValid(channelId)) {
     return next(new ApiError(400, "Invalid channel ID"));
   }
-  if (subscriberId.toString() === channelId) {
-    return next(new ApiError(400, "You cannot subscribe to yourself"));
-  }
+  // if (subscriberId.toString() === channelId) {
+  //   return next(new ApiError(400, "You cannot subscribe to yourself"));
+  // }
 
   try {
     const existingSubscription = await Subscription.findOne({
@@ -48,9 +48,9 @@ const toggleSubscription = asyncHandler(async (req, res, next) => {
 // controller to return subscriber list of a channel
 const getUserChannelSubscribers = asyncHandler(async (req, res, next) => {
   const { channelId } = req.params;
-  if (!mongoose.Types.ObjectId.isValid(channelId)) {
-    return next(new ApiError(400, "Invalid channel ID"));
-  }
+  // if (!mongoose.Types.ObjectId.isValid(channelId)) {
+  //   return next(new ApiError(400, "Invalid channel IDD"));
+  // }
 
   try {
     const subscribers = await Subscription.find({ channel: channelId })
