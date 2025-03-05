@@ -1,11 +1,17 @@
-import { Button } from "@/components/ui/button"
+import { Provider } from "react-redux";
+
+import Home from "@/pages/Home";
+import { store } from "./store/store";
+import MainLayout from "./layout/mainLayout";
 
 function App() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-svh">
-      <Button>Click me</Button>
-    </div>
-  )
+    <Provider store={store}>
+      <MainLayout>
+        <Home />
+      </MainLayout>
+    </Provider>
+  );
 }
 
-export default App
+export default App;
