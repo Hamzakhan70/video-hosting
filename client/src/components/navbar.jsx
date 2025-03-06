@@ -1,11 +1,28 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { FaUser, FaKey, FaCog, FaSignOutAlt } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 import { FaSearch, FaVideo, FaBell } from "react-icons/fa";
 import { IoMenu } from "react-icons/io5";
-import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle } from "@/components/ui/dialog"; 
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import ytLogo from "../assets/yt-logo.png";
-import userAvatar from "../assets/user-avatar.png";
+
+import { useSelector } from "react-redux";
 
 const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
+  const { accessToken, user } = useSelector((state) => {
+    console.log(state.auth, "state.auth");
+    return state.auth;
+  });
+  const [userAvatar, setUserAvatar] = useState(""); // Store user avatar in state
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -13,6 +30,11 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
     thumbnail: null,
   });
 
+  const handleLogout = () => {
+    // Clear user data (update according to your auth state)
+    localStorage.removeItem("accessToken");
+    navigate("/login");
+  };
   // Handle input changes
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -26,24 +48,18 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
-    // Get tokens from localStorage (or sessionStorage)
-    // let accessToken = localStorage.getItem("accessToken");
-    let accessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2JjOTc3MTRlYjYxYzM0YTJjNDU2ZGQiLCJlbWFpbCI6ImpvaG4yQGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJqb2huX2RvZTIiLCJmdWxsTmFtZSI6ImpvaG5fZG9lMjIiLCJpYXQiOjE3NDExOTIwOTgsImV4cCI6MTc0MTI3ODQ5OH0.o5QbbeZ4T_5TgT_zVRopzYttSixZaTMoypeUrJToq6A";
-    // const refreshToken = localStorage.getItem("refreshToken");
-    const refreshToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2JjOTc3MTRlYjYxYzM0YTJjNDU2ZGQiLCJpYXQiOjE3NDExOTIwOTgsImV4cCI6MTc0MjA1NjA5OH0.xHvz8dusu37i6A7YDGi50nvsKnLE8JkbZzRC9RXui-I";
-  
+
     if (!accessToken) {
       alert("User not logged in. Please log in first.");
       return;
     }
-  
+
     const form = new FormData();
     form.append("title", formData.title);
     form.append("description", formData.description);
     form.append("videoFile", formData.videoFile);
     form.append("thumbnail", formData.thumbnail);
-  
+
     try {
       let response = await fetch("http://localhost:8000/api/v1/videos/", {
         method: "POST",
@@ -52,27 +68,15 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
           Authorization: `Bearer ${accessToken}`,
         },
       });
-  
-      // If token expired (401 Unauthorized), refresh it
-      if (response.status === 401) {
-        console.warn("Access token expired. Attempting to refresh...");
-        const newAccessToken = await refreshAccessToken(refreshToken);
-  
-        if (newAccessToken) {
-          accessToken = newAccessToken; // Update access token
-          response = await fetch("http://localhost:8000/api/v1/videos/", {
-            method: "POST",
-            body: form,
-            headers: {
-              Authorization: `Bearer ${newAccessToken}`,
-            },
-          });
-        }
-      }
-  
+
       if (response.ok) {
         alert("Video uploaded successfully!");
-        setFormData({ title: "", description: "", videoFile: null, thumbnail: null });
+        setFormData({
+          title: "",
+          description: "",
+          videoFile: null,
+          thumbnail: null,
+        });
       } else {
         alert("Upload failed!");
       }
@@ -80,6 +84,13 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
       console.error("Error uploading video:", error);
     }
   };
+  // Update userAvatar when user changes
+  useEffect(() => {
+    if (user) {
+      console.log(user, "user");
+      setUserAvatar(user.avatar); // Set avatar if user exists
+    }
+  }, [user]); // Run when `user` changes
 
   return (
     <header
@@ -157,7 +168,10 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
                 onChange={handleFileChange}
                 required
               />
-              <button type="submit" className="bg-blue-600 text-white py-2 rounded">
+              <button
+                type="submit"
+                className="bg-blue-600 text-white py-2 rounded"
+              >
                 Upload
               </button>
             </form>
@@ -169,14 +183,44 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
           <FaBell className="text-black hover:text-gray-600" />
         </button>
 
-        {/* User Avatar */}
-        <button className="text-black hover:text-gray-600">
+        {/* Right: Profile Dropdown */}
+        <div className="relative">
           <img
-            src={userAvatar}
+            src={userAvatar || "https://via.placeholder.com/40"}
             alt="User"
-            className="h-6 w-6 rounded-full cursor-pointer"
+            className="h-8 w-8 rounded-full cursor-pointer border border-gray-500"
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           />
-        </button>
+
+          {isDropdownOpen && (
+            <div className="absolute right-0 mt-2 w-48 bg-white text-black shadow-lg rounded-lg overflow-hidden">
+              <button
+                onClick={() => navigate("/profile")}
+                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-200 w-full text-left"
+              >
+                <FaUser /> Profile
+              </button>
+              <button
+                onClick={() => navigate("/change-password")}
+                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-200 w-full text-left"
+              >
+                <FaKey /> Change Password
+              </button>
+              <button
+                onClick={() => navigate("/settings")}
+                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-200 w-full text-left"
+              >
+                <FaCog /> Settings
+              </button>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-4 py-2 hover:bg-red-500 hover:text-white w-full text-left"
+              >
+                <FaSignOutAlt /> Logout
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );

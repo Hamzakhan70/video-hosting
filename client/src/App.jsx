@@ -1,16 +1,81 @@
-import { Provider } from "react-redux";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { useSelector } from "react-redux";
 
-import Home from "@/pages/Home";
-import { store } from "./store/store";
+function ProtectedRoute({ children }) {
+  const accessToken =
+    useSelector((state) => state.auth.accessToken) ||
+    localStorage.getItem("accessToken");
+  return accessToken ? children : <Navigate to="/login" />;
+}
+
+import { Toaster } from "react-hot-toast";
+
+// Pages
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Home from "./pages/Home";
+import Profile from "./pages/user_profile";
+import ChangePassword from "./pages/change_password";
+import Settings from "./pages/settings";
 import MainLayout from "./layout/mainLayout";
 
 function App() {
   return (
-    <Provider store={store}>
-      <MainLayout>
-        <Home />
-      </MainLayout>
-    </Provider>
+    <Router>
+      <Toaster position="top-right" reverseOrder={false} />
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
+
+        {/* Protected Routes (Requires Authentication) */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <Home />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <Profile />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <Settings />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/change-password"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <ChangePassword />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </Router>
   );
 }
 
