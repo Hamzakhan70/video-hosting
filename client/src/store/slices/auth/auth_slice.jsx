@@ -1,5 +1,7 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
+import axiosInstance from "@/utils/axiosInstance";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+
 import toast from "react-hot-toast";
 const API_URL = "http://localhost:8000/api/v1";
 
@@ -22,10 +24,10 @@ export const loginUser = createAsyncThunk(
   async (credentials, { rejectWithValue }) => {
     try {
       const response = await axios.post(`${API_URL}/users/login`, credentials);
-      toast.success("Login successful!");
+      // toast.success("Login successful!");
       return response.data;
     } catch (error) {
-      toast.error(error.response.data.message || "Login failed");
+      // toast.error(error.response.data.message || "Login failed");
       return rejectWithValue(error.response.data);
     }
   }
@@ -34,8 +36,43 @@ export const updateUserProfile = createAsyncThunk(
   "auth/update",
   async (credentials, { rejectWithValue }) => {
     try {
-      const response = await axios.post(
-        `${API_URL}/users/update-account`,
+      console.log(credentials,"user data--")
+      const response = await axiosInstance.patch(
+        `/users/update-account`,
+        credentials
+      );
+      toast.success("update successful!");
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data.message || "update failed");
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+export const updateUserAvatar = createAsyncThunk(
+  "auth/update/avatar",
+  async (credentials, { rejectWithValue }) => {
+    try {
+      console.log(credentials,"avatar")
+      const response = await axiosInstance.patch(
+        `/users/avatar`,
+        credentials
+      );
+      toast.success("update successful!");
+      return response.data;
+    } catch (error) {
+      toast.error(error.response.data.message || "update failed");
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+export const updateUserCoverImage = createAsyncThunk(
+  "auth/update/coverImage",
+  async (credentials, { rejectWithValue }) => {
+    try {
+      console.log(credentials,"cover image")
+      const response = await axiosInstance.patch(
+        `/users/cover-image`,
         credentials
       );
       toast.success("update successful!");
@@ -100,13 +137,45 @@ const authSlice = createSlice({
       })
       .addCase(updateUserProfile.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload.data.user;
+        // state.user = action.payload.data.user;
 
-        state.accessToken = action.payload.data.accessToken;
-        localStorage.setItem("user", JSON.stringify(action.payload.data.user));
-        localStorage.setItem("accessToken", action.payload.data.accessToken);
+        // state.accessToken = action.payload.data.accessToken;
+        // localStorage.setItem("user", JSON.stringify(action.payload.data.user));
+        // localStorage.setItem("accessToken", action.payload.data.accessToken);
       })
       .addCase(updateUserProfile.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(updateUserCoverImage.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateUserCoverImage.fulfilled, (state, action) => {
+        state.loading = false;
+        // state.user = action.payload.data.user;
+
+        // state.accessToken = action.payload.data.accessToken;
+        // localStorage.setItem("user", JSON.stringify(action.payload.data.user));
+        // localStorage.setItem("accessToken", action.payload.data.accessToken);
+      })
+      .addCase(updateUserCoverImage.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(updateUserAvatar.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateUserAvatar.fulfilled, (state, action) => {
+        state.loading = false;
+        // state.user = action.payload.data.user;
+
+        // state.accessToken = action.payload.data.accessToken;
+        // localStorage.setItem("user", JSON.stringify(action.payload.data.user));
+        // localStorage.setItem("accessToken", action.payload.data.accessToken);
+      })
+      .addCase(updateUserAvatar.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

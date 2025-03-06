@@ -16,7 +16,7 @@ import { useSelector } from "react-redux";
 
 const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
   const { accessToken, user } = useSelector((state) => {
-    console.log(state.auth, "state.auth");
+    
     return state.auth;
   });
   const [userAvatar, setUserAvatar] = useState(""); // Store user avatar in state

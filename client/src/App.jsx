@@ -29,6 +29,11 @@ function App() {
     <Router>
       <Toaster position="top-right" reverseOrder={false} />
       <Routes>
+          {/* Default Route (Redirect to Dashboard if Authenticated) */}
+  <Route
+    path="/"
+    element={<Navigate to="/dashboard" replace />}
+  />
         {/* Public Routes */}
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />

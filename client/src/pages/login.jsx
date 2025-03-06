@@ -27,7 +27,7 @@ const Login = () => {
     onSubmit: async (values) => {
       try {
         await dispatch(loginUser(values)).unwrap();
-        // toast.success("Login successful! 🚀");
+        toast.success("Login successful! 🚀");
         navigate("/dashboard"); // Redirect after successful login
       } catch (error) {
         toast.error(error.message || "Login failed ❌");
