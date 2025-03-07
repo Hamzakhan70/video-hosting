@@ -16,7 +16,6 @@ import { useSelector } from "react-redux";
 
 const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
   const { accessToken, user } = useSelector((state) => {
-    
     return state.auth;
   });
   const [userAvatar, setUserAvatar] = useState(""); // Store user avatar in state
@@ -87,7 +86,6 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
   // Update userAvatar when user changes
   useEffect(() => {
     if (user) {
-      console.log(user, "user");
       setUserAvatar(user.avatar); // Set avatar if user exists
     }
   }, [user]); // Run when `user` changes

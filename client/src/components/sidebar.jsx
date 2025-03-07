@@ -1,6 +1,5 @@
-import { useState } from "react";
 import { FaHome, FaFire, FaPlay } from "react-icons/fa";
-import { IoMenu } from "react-icons/io5";
+import { Link } from "react-router-dom";
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   return (
@@ -17,37 +16,35 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           isOpen ? "w-56 sm:w-56" : "w-20 sm:w-20"
         } sm:relative sm:z-10`}
       >
-        {/* Logo & Toggle Button */}
-        {/* <div className="flex items-center justify-between px-4 py-3">
-          <button
-            onClick={toggleSidebar}
-            className="p-2 text-xl focus:outline-none"
-          >
-            <IoMenu />
-          </button>
-          <span
-            className={`${
-              isOpen ? "block" : "hidden"
-            } sm:block text-lg font-bold`}
-          >
-            YouTube
-          </span>
-        </div> */}
-
         {/* Navigation Menu */}
         <nav className="mt-2">
           <ul className="space-y-2 list-none">
             <li className="flex items-center p-3 hover:bg-gray-700 rounded-lg transition">
-              <FaHome className="text-xl" />
-              {isOpen && <span className="ml-4 text-sm">Home</span>}
+              <Link
+                to="/dashboard"
+                className="text-white flex items-center p-3 hover:bg-gray-700 rounded-lg transition"
+              >
+                <FaHome className="text-xl" />
+                {isOpen && <span className="ml-4 text-sm">Home</span>}
+              </Link>
             </li>
             <li className="flex items-center p-3 hover:bg-gray-700 rounded-lg transition">
-              <FaFire className="text-xl" />
-              {isOpen && <span className="ml-4 text-sm">Trending</span>}
+              <Link
+                to="/dashboard"
+                className="text-white flex items-center p-3 hover:bg-gray-700 rounded-lg transition"
+              >
+                <FaFire className="text-xl" />
+                {isOpen && <span className="ml-4 text-sm">Trending</span>}
+              </Link>
             </li>
             <li className="flex items-center p-3 hover:bg-gray-700 rounded-lg transition">
-              <FaPlay className="text-xl" />
-              {isOpen && <span className="ml-4 text-sm">Subscriptions</span>}
+              <Link
+                to="/dashboard"
+                className="text-white flex items-center p-3 hover:bg-gray-700 rounded-lg transition"
+              >
+                <FaPlay className="text-xl" />
+                {isOpen && <span className="ml-4 text-sm">Subscriptions</span>}
+              </Link>
             </li>
           </ul>
         </nav>
