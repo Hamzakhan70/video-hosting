@@ -16,8 +16,9 @@ export default function UploadVideoPage() {
   const dispatch = useDispatch();
   const [videos, setVideos] = useState([]);
   const { accessToken, user } = useSelector((state) => state.auth);
-  const comments = useSelector((state) => state.comments.comments);
-  const [newComment, setNewComment] = useState("");
+  const {comments,totalComments} = useSelector((state) => state.comments);
+  
+  const [newComment, setNewComment] = useState({});
   const [editingComment, setEditingComment] = useState(null);
   const [updatedComment, setUpdatedComment] = useState("");
 
@@ -40,9 +41,10 @@ export default function UploadVideoPage() {
   };
 
   const handleAddComment = (videoId) => {
-    if (!newComment.trim()) return;
-    dispatch(addComment({ videoId, userId: user._id, content: newComment }));
-    setNewComment("");
+    if (!newComment[videoId].trim()) return;
+    dispatch(addComment({ videoId, userId: user._id, content: newComment[videoId] }));
+     // Clear only the comment for this specific video
+  setNewComment((prev) => ({ ...prev, [videoId]: "" }));
   };
 
   const handleEditComment = (comment) => {
@@ -52,7 +54,7 @@ export default function UploadVideoPage() {
 
   const handleUpdateComment = (videoId, commentId) => {
     if (!updatedComment.trim()) return;
-    dispatch(updateComment({ videoId, commentId, content: updatedComment }));
+    dispatch(updateComment({ commentId, content: updatedComment }));
     setEditingComment(null);
     setUpdatedComment("");
   };
@@ -63,8 +65,8 @@ export default function UploadVideoPage() {
     }
   };
   useEffect(() => {
-    console.log(comments, "comment");
-  }, []);
+    console.log(comments, "comment",totalComments);
+  }, [comments]);
   return (
     <div className="p-6 space-y-4">
       <div className="grid grid-cols-4 gap-4">
@@ -101,13 +103,21 @@ export default function UploadVideoPage() {
                     )}
                     {video.likes}
                   </button>
+                  <button
+                    onClick={() => handleLike(video._id)}
+                    className="flex items-center gap-1 text-gray-600 hover:text-blue-500"
+                  >
+                   <FaRegComment/> {totalComments[video._id] || 0}
+                  </button>
                 </div>
 
                 <div className="mt-2">
                   <input
                     type="text"
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
+                    value={newComment[video._id] || ""}
+                    onChange={(e) =>
+                      setNewComment((prev) => ({ ...prev, [video._id]: e.target.value }))
+                    }
                     placeholder="Add a comment..."
                     className="border px-2 py-1 w-full rounded"
                   />
@@ -140,11 +150,11 @@ export default function UploadVideoPage() {
                       </>
                     ) : (
                       <p className="text-sm text-gray-700">
-                        <strong>{comment.owner?.name}:</strong>{" "}
+                        <strong>{comment.owner?.username || user.username}:</strong>{" "}
                         {comment.content}
                       </p>
                     )}
-                    {comment.owner === user._id && (
+                  
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleEditComment(comment)}
@@ -161,7 +171,7 @@ export default function UploadVideoPage() {
                           <FaTrash />
                         </button>
                       </div>
-                    )}
+                   
                   </div>
                 ))}
               </CardContent>
