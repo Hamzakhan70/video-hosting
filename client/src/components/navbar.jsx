@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { FaUser, FaKey, FaCog, FaSignOutAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { FaSearch, FaVideo, FaBell } from "react-icons/fa";
+import { toast } from "react-hot-toast";
 import { IoMenu } from "react-icons/io5";
 import {
   Dialog,
@@ -12,7 +13,8 @@ import {
 } from "@/components/ui/dialog";
 import ytLogo from "../assets/yt-logo.png";
 
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { logoutUser } from "@/store/slices/auth/auth_slice";
 
 const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
   const { accessToken, user } = useSelector((state) => {
@@ -21,6 +23,7 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
   const [userAvatar, setUserAvatar] = useState(""); // Store user avatar in state
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const [formData, setFormData] = useState({
     title: "",
@@ -29,10 +32,14 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
     thumbnail: null,
   });
 
-  const handleLogout = () => {
-    // Clear user data (update according to your auth state)
-    localStorage.removeItem("accessToken");
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      dispatch(logoutUser());
+      toast.success("logout successful! 🚀");
+      navigate("/login");
+    } catch (error) {
+      toast.error(error.message || "logout failed ❌");
+    }
   };
   // Handle input changes
   const handleChange = (e) => {

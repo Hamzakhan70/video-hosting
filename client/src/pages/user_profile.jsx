@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Formik, Form, Field } from "formik";
 import * as Yup from "yup";
@@ -11,7 +11,7 @@ import {
 const Profile = () => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
-console.log(user,'user')
+
   const [previewAvatar, setPreviewAvatar] = useState(user?.avatar);
   const [previewCover, setPreviewCover] = useState(user?.coverImage);
 
@@ -27,13 +27,13 @@ console.log(user,'user')
     if (file) {
       const previewURL = URL.createObjectURL(file);
       const formData = new FormData();
-  
+
       if (field === "avatar") {
         formData.append("avatar", file); // Append avatar
         setPreviewAvatar(previewURL);
         dispatch(updateUserAvatar(formData));
       }
-  
+
       if (field === "coverImage") {
         formData.append("coverImage", file); // Append coverImage
         setPreviewCover(previewURL);
@@ -41,8 +41,6 @@ console.log(user,'user')
       }
     }
   };
-  
- 
 
   return (
     <div className="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow-lg">

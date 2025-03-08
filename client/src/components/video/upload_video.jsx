@@ -16,8 +16,8 @@ export default function UploadVideoPage() {
   const dispatch = useDispatch();
   const [videos, setVideos] = useState([]);
   const { accessToken, user } = useSelector((state) => state.auth);
-  const {comments,totalComments} = useSelector((state) => state.comments);
-  
+  const { comments, totalComments } = useSelector((state) => state.comments);
+
   const [newComment, setNewComment] = useState({});
   const [editingComment, setEditingComment] = useState(null);
   const [updatedComment, setUpdatedComment] = useState("");
@@ -42,9 +42,11 @@ export default function UploadVideoPage() {
 
   const handleAddComment = (videoId) => {
     if (!newComment[videoId].trim()) return;
-    dispatch(addComment({ videoId, userId: user._id, content: newComment[videoId] }));
-     // Clear only the comment for this specific video
-  setNewComment((prev) => ({ ...prev, [videoId]: "" }));
+    dispatch(
+      addComment({ videoId, userId: user._id, content: newComment[videoId] })
+    );
+    // Clear only the comment for this specific video
+    setNewComment((prev) => ({ ...prev, [videoId]: "" }));
   };
 
   const handleEditComment = (comment) => {
@@ -65,7 +67,7 @@ export default function UploadVideoPage() {
     }
   };
   useEffect(() => {
-    console.log(comments, "comment",totalComments);
+    console.log(comments, "comment", totalComments);
   }, [comments]);
   return (
     <div className="p-6 space-y-4">
@@ -107,7 +109,7 @@ export default function UploadVideoPage() {
                     onClick={() => handleLike(video._id)}
                     className="flex items-center gap-1 text-gray-600 hover:text-blue-500"
                   >
-                   <FaRegComment/> {totalComments[video._id] || 0}
+                    <FaRegComment /> {totalComments[video._id] || 0}
                   </button>
                 </div>
 
@@ -116,7 +118,10 @@ export default function UploadVideoPage() {
                     type="text"
                     value={newComment[video._id] || ""}
                     onChange={(e) =>
-                      setNewComment((prev) => ({ ...prev, [video._id]: e.target.value }))
+                      setNewComment((prev) => ({
+                        ...prev,
+                        [video._id]: e.target.value,
+                      }))
                     }
                     placeholder="Add a comment..."
                     className="border px-2 py-1 w-full rounded"
@@ -150,28 +155,29 @@ export default function UploadVideoPage() {
                       </>
                     ) : (
                       <p className="text-sm text-gray-700">
-                        <strong>{comment.owner?.username || user.username}:</strong>{" "}
+                        <strong>
+                          {comment.owner?.username || user.username}:
+                        </strong>{" "}
                         {comment.content}
                       </p>
                     )}
-                  
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleEditComment(comment)}
-                          className="text-blue-500"
-                        >
-                          <FaEdit />
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleDeleteComment(video._id, comment._id)
-                          }
-                          className="text-red-500"
-                        >
-                          <FaTrash />
-                        </button>
-                      </div>
-                   
+
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleEditComment(comment)}
+                        className="text-blue-500"
+                      >
+                        <FaEdit />
+                      </button>
+                      <button
+                        onClick={() =>
+                          handleDeleteComment(video._id, comment._id)
+                        }
+                        className="text-red-500"
+                      >
+                        <FaTrash />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </CardContent>

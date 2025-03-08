@@ -36,7 +36,7 @@ export const updateUserProfile = createAsyncThunk(
   "auth/update",
   async (credentials, { rejectWithValue }) => {
     try {
-      console.log(credentials,"user data--")
+      console.log(credentials, "user data--");
       const response = await axiosInstance.patch(
         `/users/update-account`,
         credentials
@@ -53,11 +53,8 @@ export const updateUserAvatar = createAsyncThunk(
   "auth/update/avatar",
   async (credentials, { rejectWithValue }) => {
     try {
-      console.log(credentials,"avatar")
-      const response = await axiosInstance.patch(
-        `/users/avatar`,
-        credentials
-      );
+      console.log(credentials, "avatar");
+      const response = await axiosInstance.patch(`/users/avatar`, credentials);
       toast.success("update successful!");
       return response.data;
     } catch (error) {
@@ -70,7 +67,7 @@ export const updateUserCoverImage = createAsyncThunk(
   "auth/update/coverImage",
   async (credentials, { rejectWithValue }) => {
     try {
-      console.log(credentials,"cover image")
+      console.log(credentials, "cover image");
       const response = await axiosInstance.patch(
         `/users/cover-image`,
         credentials
@@ -83,6 +80,15 @@ export const updateUserCoverImage = createAsyncThunk(
     }
   }
 );
+export const logoutUser = createAsyncThunk("auth/logout", async () => {
+  try {
+    await axiosInstance.post(`${API_URL}/users/logout`);
+    return true;
+  } catch (error) {
+    // toast.error(error.response.data.message || "Login failed");
+    return rejectWithValue(error.response.data);
+  }
+});
 const authSlice = createSlice({
   name: "auth",
   initialState: {
@@ -96,7 +102,7 @@ const authSlice = createSlice({
     logout: (state) => {
       state.user = null;
       state.accessToken = null;
-      localStorage.removeItem("user"); // Clear from storage
+      localStorage.removeItem("user");
       localStorage.removeItem("accessToken");
     },
   },
@@ -108,8 +114,6 @@ const authSlice = createSlice({
       })
       .addCase(registerUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload.user;
-        state.accessToken = action.payload.accessToken;
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
@@ -122,7 +126,6 @@ const authSlice = createSlice({
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
         state.user = action.payload.data.user;
-
         state.accessToken = action.payload.data.accessToken;
         localStorage.setItem("user", JSON.stringify(action.payload.data.user));
         localStorage.setItem("accessToken", action.payload.data.accessToken);
@@ -137,11 +140,6 @@ const authSlice = createSlice({
       })
       .addCase(updateUserProfile.fulfilled, (state, action) => {
         state.loading = false;
-        // state.user = action.payload.data.user;
-
-        // state.accessToken = action.payload.data.accessToken;
-        // localStorage.setItem("user", JSON.stringify(action.payload.data.user));
-        // localStorage.setItem("accessToken", action.payload.data.accessToken);
       })
       .addCase(updateUserProfile.rejected, (state, action) => {
         state.loading = false;
@@ -153,11 +151,6 @@ const authSlice = createSlice({
       })
       .addCase(updateUserCoverImage.fulfilled, (state, action) => {
         state.loading = false;
-        // state.user = action.payload.data.user;
-
-        // state.accessToken = action.payload.data.accessToken;
-        // localStorage.setItem("user", JSON.stringify(action.payload.data.user));
-        // localStorage.setItem("accessToken", action.payload.data.accessToken);
       })
       .addCase(updateUserCoverImage.rejected, (state, action) => {
         state.loading = false;
@@ -169,15 +162,25 @@ const authSlice = createSlice({
       })
       .addCase(updateUserAvatar.fulfilled, (state, action) => {
         state.loading = false;
-        // state.user = action.payload.data.user;
-
-        // state.accessToken = action.payload.data.accessToken;
-        // localStorage.setItem("user", JSON.stringify(action.payload.data.user));
-        // localStorage.setItem("accessToken", action.payload.data.accessToken);
       })
       .addCase(updateUserAvatar.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      .addCase(logoutUser.pending, (state) => {
+        state.loading = false;
+        state.accessToken = null;
+      })
+      .addCase(logoutUser.fulfilled, (state) => {
+        state.loading = false;
+        state.user = null;
+        state.accessToken = null;
+        localStorage.removeItem("user"); // Clear from storage
+        localStorage.removeItem("accessToken");
+      })
+      .addCase(logoutUser.rejected, (state) => {
+        state.loading = false;
+        state.error = null;
       });
   },
 });

@@ -7,7 +7,7 @@ export const getVideoComments = createAsyncThunk(
   async (videoId, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.get(`/comments/${videoId}`);
-      console.log(response.data.meta,'this is totalvideos')
+      console.log(response.data.meta, "this is totalvideos");
       return response.data.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -65,7 +65,7 @@ const commentSlice = createSlice({
     comments: {}, // Store comments by videoId
     loading: false,
     error: null,
-    totalComments:{}
+    totalComments: {},
   },
   reducers: {},
   extraReducers: (builder) => {
@@ -75,31 +75,33 @@ const commentSlice = createSlice({
       })
       .addCase(getVideoComments.fulfilled, (state, action) => {
         state.loading = false;
-        console.log(action.payload, 'this is slice comment');
-    
+        console.log(action.payload, "this is slice comment");
+
         // Ensure payload is an array
-        const commentsArray = Array.isArray(action.payload) ? action.payload : [];
-        
+        const commentsArray = Array.isArray(action.payload)
+          ? action.payload
+          : [];
+
         // Group by videoId
         const groupedComments = {};
         const totalComments = {};
         commentsArray.forEach((comment) => {
-            const videoId = comment.video;
-            if (!groupedComments[videoId]) {
-                groupedComments[videoId] = [];
-                totalComments[videoId] = 0; 
-            }
-            groupedComments[videoId].push(comment);
-            totalComments[videoId] += 1;
+          const videoId = comment.video;
+          if (!groupedComments[videoId]) {
+            groupedComments[videoId] = [];
+            totalComments[videoId] = 0;
+          }
+          groupedComments[videoId].push(comment);
+          totalComments[videoId] += 1;
         });
-    
+
         // Replace state.comments with new grouped comments
         Object.keys(groupedComments).forEach((videoId) => {
-            state.comments[videoId] = groupedComments[videoId];
-            state.totalComments[videoId] = totalComments[videoId];
+          state.comments[videoId] = groupedComments[videoId];
+          state.totalComments[videoId] = totalComments[videoId];
         });
-    })
-    .addCase(getVideoComments.rejected, (state, action) => {
+      })
+      .addCase(getVideoComments.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
@@ -116,47 +118,53 @@ const commentSlice = createSlice({
 
         // Correct immutable update using a new array reference
         state.comments[videoId] = [newComment, ...state.comments[videoId]];
+        console.log(state.comments, "state after updation");
       })
       .addCase(addComment.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-      })  .addCase(updateComment.pending, (state) => {
+      })
+      .addCase(updateComment.pending, (state) => {
         state.loading = true;
       })
       .addCase(updateComment.fulfilled, (state, action) => {
-        console.log(action.payload.data.content, 'updated');
-    
+        console.log(action.payload.data.content, "updated");
+
         const updatedComment = action.payload.data; // Extract updated comment from payload
         const videoId = updatedComment.video; // Get the video ID from the updated comment
-    
+
         // Ensure the video exists in the state
         if (state.comments[videoId]) {
-            state.comments[videoId] = state.comments[videoId].map(comment =>
-                comment._id === updatedComment._id ? { ...comment, content: updatedComment.content } : comment
-            );
+          state.comments[videoId] = state.comments[videoId].map((comment) =>
+            comment._id === updatedComment._id
+              ? { ...comment, content: updatedComment.content }
+              : comment
+          );
         }
-    })
-    
+      })
+
       .addCase(updateComment.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
       .addCase(deleteComment.fulfilled, (state, action) => {
         const { videoId, commentId } = action.payload;
-    
+
         if (state.comments[videoId]) {
-            // Remove the comment from the list
-            state.comments[videoId] = state.comments[videoId].filter(
-                (comment) => comment._id !== commentId
+          // Remove the comment from the list
+          state.comments[videoId] = state.comments[videoId].filter(
+            (comment) => comment._id !== commentId
+          );
+
+          // Ensure totalComments count is updated safely
+          if (state.totalComments[videoId]) {
+            state.totalComments[videoId] = Math.max(
+              0,
+              state.totalComments[videoId] - 1
             );
-    
-            // Ensure totalComments count is updated safely
-            if (state.totalComments[videoId]) {
-                state.totalComments[videoId] = Math.max(0, state.totalComments[videoId] - 1);
-            }
+          }
         }
-    });
-    
+      });
   },
 });
 
