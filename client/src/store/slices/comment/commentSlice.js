@@ -118,7 +118,8 @@ const commentSlice = createSlice({
 
         // Correct immutable update using a new array reference
         state.comments[videoId] = [newComment, ...state.comments[videoId]];
-        console.log(state.comments, "state after updation");
+        // ✅ Update totalComments count
+        state.totalComments[videoId] = (state.totalComments[videoId] || 0) + 1;
       })
       .addCase(addComment.rejected, (state, action) => {
         state.loading = false;

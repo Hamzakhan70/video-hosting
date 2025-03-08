@@ -17,7 +17,6 @@ export default function UploadVideoPage() {
   const [videos, setVideos] = useState([]);
   const { accessToken, user } = useSelector((state) => state.auth);
   const { comments, totalComments } = useSelector((state) => state.comments);
-
   const [newComment, setNewComment] = useState({});
   const [editingComment, setEditingComment] = useState(null);
   const [updatedComment, setUpdatedComment] = useState("");
