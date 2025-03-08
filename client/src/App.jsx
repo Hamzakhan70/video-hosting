@@ -1,3 +1,4 @@
+
 import {
   BrowserRouter as Router,
   Routes,
@@ -23,6 +24,11 @@ import Profile from "./pages/user_profile";
 import ChangePassword from "./pages/change_password";
 import Settings from "./pages/settings";
 import MainLayout from "./layout/mainLayout";
+import Playlists from "./pages/playlist/playlist";
+import PlaylistDetail from "./pages/playlist/playlist_details";
+import CreatePlaylist from "./pages/playlist/create_playlist";
+import Dashboard from "./pages/dashboard";
+import SubscriptionPage from "./pages/subscription";
 
 function App() {
   return (
@@ -79,6 +85,48 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/playlists"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <Playlists/>
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/playlists/create"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <CreatePlaylist/>
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/userdashboard"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <Dashboard/>
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/subscription"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <SubscriptionPage/>
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        {/* <Route path="/playlists/create" element={<CreatePlaylist />} /> */}
+        <Route path="/playlist/:id" element={<PlaylistDetail />} />
       </Routes>
     </Router>
   );

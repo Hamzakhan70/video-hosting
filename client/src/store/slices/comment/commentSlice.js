@@ -7,7 +7,6 @@ export const getVideoComments = createAsyncThunk(
   async (videoId, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.get(`/comments/${videoId}`);
-      console.log(response.data.meta, "this is totalvideos");
       return response.data.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -75,8 +74,6 @@ const commentSlice = createSlice({
       })
       .addCase(getVideoComments.fulfilled, (state, action) => {
         state.loading = false;
-        console.log(action.payload, "this is slice comment");
-
         // Ensure payload is an array
         const commentsArray = Array.isArray(action.payload)
           ? action.payload
@@ -129,11 +126,8 @@ const commentSlice = createSlice({
         state.loading = true;
       })
       .addCase(updateComment.fulfilled, (state, action) => {
-        console.log(action.payload.data.content, "updated");
-
         const updatedComment = action.payload.data; // Extract updated comment from payload
         const videoId = updatedComment.video; // Get the video ID from the updated comment
-
         // Ensure the video exists in the state
         if (state.comments[videoId]) {
           state.comments[videoId] = state.comments[videoId].map((comment) =>

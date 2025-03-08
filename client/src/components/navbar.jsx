@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { FaSearch, FaVideo, FaBell } from "react-icons/fa";
 import { toast } from "react-hot-toast";
 import { IoMenu } from "react-icons/io5";
+
 import {
   Dialog,
   DialogContent,
@@ -15,9 +16,10 @@ import ytLogo from "../assets/yt-logo.png";
 
 import { useDispatch, useSelector } from "react-redux";
 import { logoutUser } from "@/store/slices/auth/auth_slice";
+import { addNewVideo } from "@/store/slices/video/video_slice";
 
 const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
-  const { accessToken, user } = useSelector((state) => {
+  const {  user } = useSelector((state) => {
     return state.auth;
   });
   const [userAvatar, setUserAvatar] = useState(""); // Store user avatar in state
@@ -41,55 +43,64 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
       toast.error(error.message || "logout failed ❌");
     }
   };
-  // Handle input changes
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
   };
 
-  // Handle file changes
+  // Handle file inputs properly
   const handleFileChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.files[0] });
+    const { name, files } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: files.length > 1 ? [...files] : files[0], // Handle multiple files
+    }));
   };
 
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!accessToken) {
-      alert("User not logged in. Please log in first.");
-      return;
+    
+    const formDataObj = new FormData();
+    formDataObj.append("title", formData.title);
+    formDataObj.append("description", formData.description);
+    
+    if (formData.videoFile) {
+      if (Array.isArray(formData.videoFile)) {
+        formData.videoFile.forEach((file) => formDataObj.append("videoFile", file));
+      } else {
+        formDataObj.append("videoFile", formData.videoFile);
+      }
     }
-
-    const form = new FormData();
-    form.append("title", formData.title);
-    form.append("description", formData.description);
-    form.append("videoFile", formData.videoFile);
-    form.append("thumbnail", formData.thumbnail);
+    
+    if (formData.thumbnail) {
+      formDataObj.append("thumbnail", formData.thumbnail);
+    }
 
     try {
-      let response = await fetch("http://localhost:8000/api/v1/videos/", {
-        method: "POST",
-        body: form,
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+      await dispatch(addNewVideo(formDataObj)).unwrap();
+      toast.success("Video uploaded successfully!");
+      
+      // Reset form fields
+      setFormData({
+        title: "",
+        description: "",
+        videoFile: null,
+        thumbnail: null,
       });
 
-      if (response.ok) {
-        alert("Video uploaded successfully!");
-        setFormData({
-          title: "",
-          description: "",
-          videoFile: null,
-          thumbnail: null,
-        });
-      } else {
-        alert("Upload failed!");
-      }
+      // Reset file input fields manually
+      document.getElementById("videoFile").value = "";
+      document.getElementById("thumbnail").value = "";
+      
     } catch (error) {
-      console.error("Error uploading video:", error);
+      toast.error(`Error uploading video: ${error.message || "Unknown error"}`);
     }
   };
+
   // Update userAvatar when user changes
   useEffect(() => {
     if (user) {
@@ -139,47 +150,71 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
             <DialogHeader>
               <DialogTitle>Upload Video</DialogTitle>
             </DialogHeader>
-            {/* Video Upload Form */}
             <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-              <input
-                type="text"
-                name="title"
-                placeholder="Video Title"
-                className="border p-2 rounded"
-                value={formData.title}
-                onChange={handleChange}
-                required
-              />
-              <textarea
-                name="description"
-                placeholder="Video Description"
-                className="border p-2 rounded"
-                rows="3"
-                value={formData.description}
-                onChange={handleChange}
-              ></textarea>
-              <input
-                type="file"
-                name="videoFile"
-                className="border p-2 rounded"
-                onChange={handleFileChange}
-                required
-              />
-              {/* Thumbnail Upload Field */}
-              <input
-                type="file"
-                name="thumbnail"
-                className="border p-2 rounded"
-                onChange={handleFileChange}
-                required
-              />
-              <button
-                type="submit"
-                className="bg-blue-600 text-white py-2 rounded"
-              >
-                Upload
-              </button>
-            </form>
+      {/* Video Title */}
+      <div className="flex flex-col">
+        <label htmlFor="title" className="font-medium text-white">Video Title</label>
+        <input
+          type="text"
+          id="title"
+          name="title"
+          placeholder="Enter video title"
+          className="border p-2 rounded"
+          value={formData.title}
+          onChange={handleChange}
+          required
+        />
+      </div>
+
+      {/* Video Description */}
+      <div className="flex flex-col">
+        <label htmlFor="description" className="font-medium text-white">Video Description</label>
+        <textarea
+          id="description"
+          name="description"
+          placeholder="Enter video description"
+          className="border p-2 rounded"
+          rows="3"
+          value={formData.description}
+          onChange={handleChange}
+        ></textarea>
+      </div>
+
+      {/* Video File Upload */}
+      <div className="flex flex-col">
+        <label htmlFor="videoFile" className="font-medium text-white">Upload Video</label>
+        <input
+          type="file"
+          id="videoFile"
+          name="videoFile"
+          className="border p-2 rounded"
+          onChange={handleFileChange}
+          multiple // Allow multiple video uploads
+          required
+        />
+      </div>
+
+      {/* Thumbnail Upload */}
+      <div className="flex flex-col">
+        <label htmlFor="thumbnail" className="font-medium text-white">Upload Thumbnail</label>
+        <input
+          type="file"
+          id="thumbnail"
+          name="thumbnail"
+          className="border p-2 rounded"
+          onChange={handleFileChange}
+          required
+        />
+      </div>
+
+      {/* Submit Button */}
+      <button
+        type="submit"
+        className="bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+      >
+        Upload
+      </button>
+    </form>
           </DialogContent>
         </Dialog>
 
@@ -206,10 +241,10 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
                 <FaUser /> Profile
               </button>
               <button
-                onClick={() => navigate("/change-password")}
+                onClick={() => navigate("/userdashboard")}
                 className="flex items-center gap-2 px-4 py-2 hover:bg-gray-200 w-full text-left"
               >
-                <FaKey /> Change Password
+                <FaKey /> Dashboard
               </button>
               <button
                 onClick={() => navigate("/settings")}

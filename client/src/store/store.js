@@ -23,7 +23,8 @@ import sidebarReducer from "./slices/sidebar/sidebarSlice";
 import authReducer from "./slices/auth/auth_slice";
 import commentReducer from "./slices/comment/commentSlice";
 import likeReducer from "./slices/like/likeSlice";
-
+import playlistReducer from "./slices/playlist/playlistSlice";
+import subscriptionReducer from './slices/subscription/subscriptionSlice'
 // 🔹 Persist Config for Auth State
 const authPersistConfig = {
   key: "auth",
@@ -36,11 +37,13 @@ const persistedAuthReducer = persistReducer(authPersistConfig, authReducer);
 // 🔹 Configure Redux Store
 export const store = configureStore({
   reducer: {
-    videos: videoReducer,
+    video: videoReducer,
     sidebar: sidebarReducer,
     auth: persistedAuthReducer, // Persisted Auth Reducer
     comments: commentReducer,
     likes: likeReducer,
+    playlist:playlistReducer,
+    subscription: subscriptionReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

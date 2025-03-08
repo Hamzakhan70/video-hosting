@@ -65,9 +65,7 @@ export default function UploadVideoPage() {
       dispatch(deleteComment({ videoId, commentId }));
     }
   };
-  useEffect(() => {
-    console.log(comments, "comment", totalComments);
-  }, [comments]);
+
   return (
     <div className="p-6 space-y-4">
       <div className="grid grid-cols-4 gap-4">

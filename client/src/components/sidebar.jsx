@@ -1,4 +1,4 @@
-import { FaHome, FaFire, FaPlay } from "react-icons/fa";
+import { FaHome, FaFire, FaPlay,FaList } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
@@ -39,13 +39,20 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             </li>
             <li className="flex items-center p-3 hover:bg-gray-700 rounded-lg transition">
               <Link
-                to="/dashboard"
+                to="/subscription"
                 className="text-white flex items-center p-3 hover:bg-gray-700 rounded-lg transition"
               >
                 <FaPlay className="text-xl" />
                 {isOpen && <span className="ml-4 text-sm">Subscriptions</span>}
               </Link>
             </li>
+            {/* Playlist Section */}
+            <li className="flex items-center p-3 hover:bg-gray-700 rounded-lg transition">
+              <Link to="/playlists" className="text-white flex items-center p-3 hover:bg-gray-700 rounded-lg transition">
+                <FaList className="text-xl" />
+                {isOpen && <span className="ml-4 text-sm">Playlists</span>}
+              </Link>
+              </li>
           </ul>
         </nav>
       </div>
