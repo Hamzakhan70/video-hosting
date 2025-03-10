@@ -9,12 +9,17 @@ import {
   updateComment,
   deleteComment,
 } from "../../store/slices/comment/commentSlice";
-import { toggleVideoLike } from "../../store/slices/like/likeSlice";
+import {
+  getLikedVideos,
+  toggleVideoLike,
+} from "../../store/slices/like/likeSlice";
+
 import axios from "axios";
 
 export default function UploadVideoPage() {
   const dispatch = useDispatch();
   const [videos, setVideos] = useState([]);
+  const { likes } = useSelector((state) => state.likes);
   const { accessToken, user } = useSelector((state) => state.auth);
   const { comments, totalComments } = useSelector((state) => state.comments);
   const [newComment, setNewComment] = useState({});
@@ -23,20 +28,48 @@ export default function UploadVideoPage() {
 
   // Fetch videos & their comments
   useEffect(() => {
+    if (!user?._id) return;
+
     axios
       .get("http://localhost:8000/api/v1/videos/?sortBy=views&sortType=asc", {
         headers: { Authorization: `Bearer ${accessToken}` },
       })
-      .then((res) => {
+      .then(async (res) => {
         const fetchedVideos = res.data?.data.videos || [];
-        setVideos(fetchedVideos);
+
+        // Fetch comments for each video
         fetchedVideos.forEach((video) => dispatch(getVideoComments(video._id)));
+
+        // Fetch liked videos
+        const likedVideos = await dispatch(getLikedVideos(user._id)).unwrap();
+
+        // Update `isLiked` based on the liked videos
+        const updatedVideos = fetchedVideos.map((video) => ({
+          ...video,
+          isLiked: likedVideos.data?.some((likedVideo) => {
+            const a = likedVideo.videoDetails._id === video._id;
+            return a;
+          }),
+          // Check if video is in likedVideos
+        }));
+
+        setVideos(updatedVideos);
       })
       .catch((err) => console.error("Error fetching videos:", err));
-  }, [accessToken, dispatch]);
+  }, [accessToken, dispatch, user?._id]);
 
-  const handleLike = (videoId) => {
-    dispatch(toggleVideoLike({ videoId, userId: user._id }));
+  const handleLike = async (videoId) => {
+    try {
+      const response = await dispatch(toggleVideoLike({ videoId })).unwrap();
+
+      setVideos((prevVideos) =>
+        prevVideos.map((video) =>
+          video._id === videoId ? { ...video, isLiked: !video.isLiked } : video
+        )
+      );
+    } catch (error) {
+      console.error("Error toggling like:", error);
+    }
   };
 
   const handleAddComment = (videoId) => {
@@ -65,7 +98,9 @@ export default function UploadVideoPage() {
       dispatch(deleteComment({ videoId, commentId }));
     }
   };
-
+  useEffect(() => {
+    console.log(likes, "likes");
+  }, []);
   return (
     <div className="p-6 space-y-4">
       <div className="grid grid-cols-4 gap-4">
@@ -102,6 +137,7 @@ export default function UploadVideoPage() {
                     )}
                     {video.likes}
                   </button>
+
                   <button
                     onClick={() => handleLike(video._id)}
                     className="flex items-center gap-1 text-gray-600 hover:text-blue-500"
