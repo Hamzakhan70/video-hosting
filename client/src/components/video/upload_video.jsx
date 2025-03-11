@@ -27,9 +27,10 @@ export default function UploadVideoPage() {
   const [editingComment, setEditingComment] = useState(null);
   const [updatedComment, setUpdatedComment] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+  const [selectedVideoId, setSelectedVideoId] = useState(null);
   const addToPlaylist = (videoId) => {
     setIsModalOpen(true); // Open the modal when the button is clicked
+    setSelectedVideoId(videoId);
   };
   // Fetch videos & their comments
   useEffect(() => {
@@ -154,7 +155,7 @@ export default function UploadVideoPage() {
                       Add to playlist
                     </button>
                     <PlaylistModal
-                      videoId={video._id}
+                      videoId={selectedVideoId}
                       isOpen={isModalOpen}
                       onClose={() => setIsModalOpen(false)}
                     />

@@ -6,13 +6,12 @@ import {
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 
 const PlaylistDetail = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [selectedVideo, setSelectedVideo] = useState(null); // State to hold the currently selected video
   // Get playlist data from Redux
   const { currentPlaylist, loading, error } = useSelector(
     (state) => state.playlist
@@ -20,13 +19,7 @@ const PlaylistDetail = () => {
 
   useEffect(() => {
     dispatch(getPlaylistById(id)); // Fetch playlist on mount
-  }, [dispatch, id]);
-
-  useEffect(() => {
-    if (error) {
-      toast.error(error);
-    }
-  }, [error]);
+  }, [dispatch]);
 
   const handleDelete = async () => {
     const confirmed = window.confirm(
@@ -44,7 +37,13 @@ const PlaylistDetail = () => {
   };
 
   const handleRemoveVideo = async (videoId) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this playlist?"
+    );
+    if (!confirmed) return;
+
     const result = await dispatch(removeVideoFromPlaylist({ id, videoId }));
+    console.log(result,'result in submit')
     if (result.meta.requestStatus === "fulfilled") {
       toast.success("Video removed from playlist successfully!");
     } else {
@@ -52,9 +51,7 @@ const PlaylistDetail = () => {
     }
   };
 
-  const handlePlayVideo = (video) => {
-    setSelectedVideo(video); // Set the selected video to play
-  };
+
 
   return (
     <div className="p-6">
@@ -79,7 +76,6 @@ const PlaylistDetail = () => {
                 <div className="flex-1">
                   <h4
                     className="font-semibold text-lg cursor-pointer"
-                    onClick={() => handlePlayVideo(video)}
                   >
                     {video.title}
                   </h4>
@@ -99,22 +95,6 @@ const PlaylistDetail = () => {
               </li>
             ))}
           </ul>
-
-          {/* Video Player */}
-          {selectedVideo && (
-            <div className="mt-6">
-              <h3 className="text-xl font-bold">
-                Now Playing: {selectedVideo.title}
-              </h3>
-              <video
-                className="w-full mt-2 rounded-lg shadow-lg"
-                controls
-                src={selectedVideo.videoUrl} // Assuming videoUrl is the source of the video
-              >
-                Your browser does not support the video tag.
-              </video>
-            </div>
-          )}
         </>
       ) : (
         <p>Playlist not found.</p>

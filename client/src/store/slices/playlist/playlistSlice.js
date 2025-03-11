@@ -43,10 +43,11 @@ export const addVideoToPlaylist = createAsyncThunk(
   "playlist/addVideoToPlaylist",
   async ({ playlistId, videoId }, { rejectWithValue }) => {
     try {
-      const { data } = await axiosInstance.patch(
+      const response = await axiosInstance.patch(
         `/playlist/add/${videoId}/${playlistId}`
       );
-      return { playlistId, video: data };
+      
+      return response ;
     } catch (error) {
       return rejectWithValue(error.response.data);
     }
@@ -57,9 +58,8 @@ export const removeVideoFromPlaylist = createAsyncThunk(
   "playlist/removeVideoFromPlaylist",
   async ({ id, videoId }, { rejectWithValue }) => {
     try {
-      console.log(id, videoId, "id,videoId");
-      await axiosInstance.patch(`playlist/remove/${videoId}/${id}`);
-      return { playlistId, videoId };
+      const res=await axiosInstance.patch(`playlist/remove/${videoId}/${id}`);
+      return res;
     } catch (error) {
       return rejectWithValue(error.response.data);
     }
@@ -126,7 +126,6 @@ const playlistSlice = createSlice({
       })
       .addCase(getUserPlaylists.fulfilled, (state, action) => {
         state.loading = false;
-        console.log(action.payload.data, "action.payload.data palylist");
         state.playlists = action.payload.data;
       })
       .addCase(getUserPlaylists.rejected, (state, action) => {
@@ -158,8 +157,7 @@ const playlistSlice = createSlice({
           (p) => p._id === action.payload.playlistId
         );
         if (playlist) {
-          console.log(action.payload.data.video, "action.payload.video");
-          playlist.videos.push(action.payload.video);
+          playlist.videos.push(action.payload.video.data);
         }
       })
       .addCase(addVideoToPlaylist.rejected, (state, action) => {
@@ -173,14 +171,16 @@ const playlistSlice = createSlice({
         state.error = null;
       })
       .addCase(removeVideoFromPlaylist.fulfilled, (state, action) => {
-        state.loading = false;
-        const playlist = state.playlists.find(
-          (p) => p._id === action.payload.playlistId
-        );
+        state.loading = false;      
+        const { _id, videoId, videos } = action.payload.data.data; // Extract the correct fields
+        // Update `currentPlaylist` if it's the active one
+        if (state.currentPlaylist && state.currentPlaylist._id === _id) {
+          state.currentPlaylist.videos = videos; // Replace with the updated video list
+        }
+        // Update the playlist inside `playlists` array (if it exists)
+        const playlist = state.playlists.find((p) => p._id === _id);
         if (playlist) {
-          playlist.videos = playlist.videos.filter(
-            (video) => video._id !== action.payload.videoId
-          );
+          playlist.videos = videos; // Replace with the updated video list
         }
       })
       .addCase(removeVideoFromPlaylist.rejected, (state, action) => {
