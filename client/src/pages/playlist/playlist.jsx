@@ -15,7 +15,7 @@ const Playlists = () => {
     if (userId) {
       dispatch(getUserPlaylists(userId)); // ✅ Pass userId to action
     }
-  }, [dispatch, userId]);
+  }, [dispatch]);
 
   useEffect(() => {
     if (error) {
@@ -26,7 +26,10 @@ const Playlists = () => {
   return (
     <div className="p-6">
       <h2 className="text-2xl font-bold mb-4">Your Playlists</h2>
-      <Link to="/playlists/create" className="bg-blue-500 text-white px-4 py-2 rounded">
+      <Link
+        to="/playlists/create"
+        className="bg-blue-500 text-white px-4 py-2 rounded"
+      >
         + Create Playlist
       </Link>
 
@@ -37,10 +40,15 @@ const Playlists = () => {
           <p>No playlists found.</p>
         ) : (
           <ul>
-            {playlists.map((playlist) => (
+            {playlists?.map((playlist) => (
               <li key={playlist._id} className="border-b py-2">
-                <Link to={`/playlist/${playlist._id}`} className="text-blue-600 hover:underline">
+                <Link
+                  to={`/playlist/${playlist._id}`}
+                  className="text-blue-600 hover:underline"
+                >
                   {playlist.name}
+                  <br />
+                  description:{playlist.description}
                 </Link>
               </li>
             ))}

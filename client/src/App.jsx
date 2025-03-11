@@ -1,4 +1,3 @@
-
 import {
   BrowserRouter as Router,
   Routes,
@@ -35,11 +34,8 @@ function App() {
     <Router>
       <Toaster position="top-right" reverseOrder={false} />
       <Routes>
-          {/* Default Route (Redirect to Dashboard if Authenticated) */}
-  <Route
-    path="/"
-    element={<Navigate to="/dashboard" replace />}
-  />
+        {/* Default Route (Redirect to Dashboard if Authenticated) */}
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
         {/* Public Routes */}
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
@@ -90,7 +86,7 @@ function App() {
           element={
             <ProtectedRoute>
               <MainLayout>
-                <Playlists/>
+                <Playlists />
               </MainLayout>
             </ProtectedRoute>
           }
@@ -100,7 +96,7 @@ function App() {
           element={
             <ProtectedRoute>
               <MainLayout>
-                <CreatePlaylist/>
+                <CreatePlaylist />
               </MainLayout>
             </ProtectedRoute>
           }
@@ -110,7 +106,7 @@ function App() {
           element={
             <ProtectedRoute>
               <MainLayout>
-                <Dashboard/>
+                <Dashboard />
               </MainLayout>
             </ProtectedRoute>
           }
@@ -120,13 +116,23 @@ function App() {
           element={
             <ProtectedRoute>
               <MainLayout>
-                <SubscriptionPage/>
+                <SubscriptionPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/playlist/:id"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <PlaylistDetail />
               </MainLayout>
             </ProtectedRoute>
           }
         />
         {/* <Route path="/playlists/create" element={<CreatePlaylist />} /> */}
-        <Route path="/playlist/:id" element={<PlaylistDetail />} />
+        {/* <Route path="/playlist/:id" element={<PlaylistDetail />} /> */}
       </Routes>
     </Router>
   );

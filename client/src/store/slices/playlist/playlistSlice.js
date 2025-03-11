@@ -43,7 +43,9 @@ export const addVideoToPlaylist = createAsyncThunk(
   "playlist/addVideoToPlaylist",
   async ({ playlistId, videoId }, { rejectWithValue }) => {
     try {
-      const { data } = await axios.post(`/api/playlists/${playlistId}/add`, { videoId });
+      const { data } = await axiosInstance.patch(
+        `/playlist/add/${videoId}/${playlistId}`
+      );
       return { playlistId, video: data };
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -53,9 +55,10 @@ export const addVideoToPlaylist = createAsyncThunk(
 
 export const removeVideoFromPlaylist = createAsyncThunk(
   "playlist/removeVideoFromPlaylist",
-  async ({ playlistId, videoId }, { rejectWithValue }) => {
+  async ({ id, videoId }, { rejectWithValue }) => {
     try {
-      await axios.delete(`/api/playlists/${playlistId}/remove/${videoId}`);
+      console.log(id, videoId, "id,videoId");
+      await axiosInstance.patch(`playlist/remove/${videoId}/${id}`);
       return { playlistId, videoId };
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -79,7 +82,10 @@ export const updatePlaylist = createAsyncThunk(
   "playlist/updatePlaylist",
   async ({ playlistId, updatedData }, { rejectWithValue }) => {
     try {
-      const { data } = await axios.put(`/api/playlists/${playlistId}`, updatedData);
+      const { data } = await axios.put(
+        `/api/playlists/${playlistId}`,
+        updatedData
+      );
       return data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -92,6 +98,7 @@ const playlistSlice = createSlice({
   name: "playlist",
   initialState: {
     playlists: [],
+    currentPlaylist: null,
     loading: false,
     error: null,
   },
@@ -119,7 +126,7 @@ const playlistSlice = createSlice({
       })
       .addCase(getUserPlaylists.fulfilled, (state, action) => {
         state.loading = false;
-        
+        console.log(action.payload.data, "action.payload.data palylist");
         state.playlists = action.payload.data;
       })
       .addCase(getUserPlaylists.rejected, (state, action) => {
@@ -134,7 +141,7 @@ const playlistSlice = createSlice({
       })
       .addCase(getPlaylistById.fulfilled, (state, action) => {
         state.loading = false;
-        state.playlists = action.payload.data;
+        state.currentPlaylist = action.payload.data;
       })
       .addCase(getPlaylistById.rejected, (state, action) => {
         state.loading = false;
@@ -144,10 +151,14 @@ const playlistSlice = createSlice({
       .addCase(addVideoToPlaylist.pending, (state) => {
         state.loading = true;
         state.error = null;
-      }).addCase(addVideoToPlaylist.fulfilled, (state, action) => {
+      })
+      .addCase(addVideoToPlaylist.fulfilled, (state, action) => {
         state.loading = false;
-        const playlist = state.playlists.find((p) => p._id === action.payload.playlistId);
+        const playlist = state.playlists.find(
+          (p) => p._id === action.payload.playlistId
+        );
         if (playlist) {
+          console.log(action.payload.data.video, "action.payload.video");
           playlist.videos.push(action.payload.video);
         }
       })
@@ -163,9 +174,13 @@ const playlistSlice = createSlice({
       })
       .addCase(removeVideoFromPlaylist.fulfilled, (state, action) => {
         state.loading = false;
-        const playlist = state.playlists.find((p) => p._id === action.payload.playlistId);
+        const playlist = state.playlists.find(
+          (p) => p._id === action.payload.playlistId
+        );
         if (playlist) {
-          playlist.videos = playlist.videos.filter((video) => video._id !== action.payload.videoId);
+          playlist.videos = playlist.videos.filter(
+            (video) => video._id !== action.payload.videoId
+          );
         }
       })
       .addCase(removeVideoFromPlaylist.rejected, (state, action) => {
@@ -179,14 +194,15 @@ const playlistSlice = createSlice({
         state.error = null;
       })
       .addCase(deletePlaylist.fulfilled, (state, action) => {
-        
         if (!Array.isArray(state.playlists)) {
-            state.playlists = []; // Ensure it's an array
+          state.playlists = []; // Ensure it's an array
         }
         if (action.payload) {
-            state.playlists = state.playlists.filter((p) => p._id !== action.payload);
+          state.playlists = state.playlists.filter(
+            (p) => p._id !== action.payload
+          );
         }
-    })
+      })
       .addCase(deletePlaylist.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
@@ -199,7 +215,9 @@ const playlistSlice = createSlice({
       })
       .addCase(updatePlaylist.fulfilled, (state, action) => {
         state.loading = false;
-        const index = state.playlists.findIndex((p) => p._id === action.payload._id);
+        const index = state.playlists.findIndex(
+          (p) => p._id === action.payload._id
+        );
         if (index !== -1) {
           state.playlists[index] = action.payload;
         }

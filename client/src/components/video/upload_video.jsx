@@ -15,6 +15,7 @@ import {
 } from "../../store/slices/like/likeSlice";
 
 import axios from "axios";
+import PlaylistModal from "./playlist_modal";
 
 export default function UploadVideoPage() {
   const dispatch = useDispatch();
@@ -25,7 +26,11 @@ export default function UploadVideoPage() {
   const [newComment, setNewComment] = useState({});
   const [editingComment, setEditingComment] = useState(null);
   const [updatedComment, setUpdatedComment] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const addToPlaylist = (videoId) => {
+    setIsModalOpen(true); // Open the modal when the button is clicked
+  };
   // Fetch videos & their comments
   useEffect(() => {
     if (!user?._id) return;
@@ -98,9 +103,7 @@ export default function UploadVideoPage() {
       dispatch(deleteComment({ videoId, commentId }));
     }
   };
-  useEffect(() => {
-    console.log(likes, "likes");
-  }, []);
+
   return (
     <div className="p-6 space-y-4">
       <div className="grid grid-cols-4 gap-4">
@@ -125,25 +128,37 @@ export default function UploadVideoPage() {
                 <h3 className="font-semibold mt-2">{video.title}</h3>
                 <p className="text-gray-600 text-sm">{video.description}</p>
 
-                <div className="flex items-center gap-4 mt-2">
-                  <button
-                    onClick={() => handleLike(video._id)}
-                    className="flex items-center gap-1 text-gray-600 hover:text-blue-500"
-                  >
-                    {video.isLiked ? (
-                      <AiFillLike className="text-blue-500" />
-                    ) : (
-                      <AiOutlineLike />
-                    )}
-                    {video.likes}
-                  </button>
+                <div className="flex justify-between gap-4 mt-2">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleLike(video._id)}
+                      className="flex items-center gap-1 text-gray-600 hover:text-blue-500"
+                    >
+                      {video.isLiked ? (
+                        <AiFillLike className="text-blue-500" />
+                      ) : (
+                        <AiOutlineLike />
+                      )}
+                      {video.likes}
+                    </button>
 
-                  <button
-                    onClick={() => handleLike(video._id)}
-                    className="flex items-center gap-1 text-gray-600 hover:text-blue-500"
-                  >
-                    <FaRegComment /> {totalComments[video._id] || 0}
-                  </button>
+                    <button
+                      onClick={() => handleLike(video._id)}
+                      className="flex items-center gap-1 text-gray-600 hover:text-blue-500"
+                    >
+                      <FaRegComment /> {totalComments[video._id] || 0}
+                    </button>
+                  </div>
+                  <div className="flex flex-end items-center gap-2">
+                    <button onClick={() => addToPlaylist(video._id)}>
+                      Add to playlist
+                    </button>
+                    <PlaylistModal
+                      videoId={video._id}
+                      isOpen={isModalOpen}
+                      onClose={() => setIsModalOpen(false)}
+                    />
+                  </div>
                 </div>
 
                 <div className="mt-2">
@@ -219,6 +234,7 @@ export default function UploadVideoPage() {
         ) : (
           <p>No videos found</p>
         )}
+        {/* Modal for selecting playlists */}
       </div>
     </div>
   );
