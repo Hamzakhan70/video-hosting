@@ -39,7 +39,6 @@ const getUserPlaylists = asyncHandler(async (req, res, next) => {
   if (!mongoose.Types.ObjectId.isValid(userId)) {
     return next(new ApiError(400, "Invalid user ID"));
   }
-  console.log(userId, "userid");
   try {
     const playlists = await Playlist.aggregate([
       {
@@ -64,7 +63,7 @@ const getPlaylistById = asyncHandler(async (req, res, next) => {
     return next(new ApiError(401, "Invalid Playlist ID"));
   }
   try {
-    const playlist = await Playlist.findById(playlistId);
+    const playlist = await Playlist.findById(playlistId).populate("videos");
     if (!playlist) {
       return next(401, "Playlist not found in the database");
     }
@@ -118,19 +117,19 @@ const addVideoToPlaylist = asyncHandler(async (req, res, next) => {
   }
 });
 
-const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
-  const { playlistId, videoId } = req.params;
+const removeVideoFromPlaylist = asyncHandler(async (req, res, next) => {
+  const { id, videoId } = req.params;
   // TODO: remove video from playlist
 
   if (
-    !mongoose.Types.ObjectId.isValid(playlistId) ||
+    !mongoose.Types.ObjectId.isValid(id) ||
     !mongoose.Types.ObjectId.isValid(videoId)
   ) {
     return next(new ApiError(401, "Invalid playlist/video ID"));
   }
   try {
     // Check if the playlist exists
-    const playlist = await Playlist.findById(playlistId);
+    const playlist = await Playlist.findById(id);
     if (!playlist) {
       return next(new ApiError(404, "Playlist not found"));
     }
@@ -141,7 +140,7 @@ const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
       return next(new ApiError(404, "Video not found"));
     }
     const updatedPlaylist = await Playlist.findByIdAndUpdate(
-      playlistId,
+      id,
       {
         $pull: { videos: videoId },
       },
