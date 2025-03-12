@@ -16,11 +16,15 @@ import {
 
 import axios from "axios";
 import PlaylistModal from "./playlist_modal";
+import VideoModal from "./video_modal";
 
 export default function UploadVideoPage() {
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const dispatch = useDispatch();
   const [videos, setVideos] = useState([]);
   const { likes } = useSelector((state) => state.likes);
+  const [selectedVideo, setSelectedVideo] = useState(null);
+
   const { accessToken, user } = useSelector((state) => state.auth);
   const { comments, totalComments } = useSelector((state) => state.comments);
   const [newComment, setNewComment] = useState({});
@@ -28,6 +32,8 @@ export default function UploadVideoPage() {
   const [updatedComment, setUpdatedComment] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedVideoId, setSelectedVideoId] = useState(null);
+  const [currentVideo, setCurrentVideo] = useState(null);
+
   const addToPlaylist = (videoId) => {
     setIsModalOpen(true); // Open the modal when the button is clicked
     setSelectedVideoId(videoId);
@@ -50,6 +56,7 @@ export default function UploadVideoPage() {
         const likedVideos = await dispatch(getLikedVideos(user._id)).unwrap();
 
         // Update `isLiked` based on the liked videos
+
         const updatedVideos = fetchedVideos.map((video) => ({
           ...video,
           isLiked: likedVideos.data?.some((likedVideo) => {
@@ -66,13 +73,18 @@ export default function UploadVideoPage() {
 
   const handleLike = async (videoId) => {
     try {
-      const response = await dispatch(toggleVideoLike({ videoId })).unwrap();
+      await dispatch(toggleVideoLike({ videoId })).unwrap();
 
       setVideos((prevVideos) =>
         prevVideos.map((video) =>
           video._id === videoId ? { ...video, isLiked: !video.isLiked } : video
         )
       );
+
+      // If the liked video is currently open in the modal, update its state
+      if (currentVideo && currentVideo._id === videoId) {
+        setCurrentVideo((prev) => ({ ...prev, isLiked: !prev.isLiked }));
+      }
     } catch (error) {
       console.error("Error toggling like:", error);
     }
@@ -105,26 +117,35 @@ export default function UploadVideoPage() {
     }
   };
 
+  const handleVideoClick = (video) => {
+    setSelectedVideo(video);
+    setIsVideoModalOpen(true);
+  };
   return (
     <div className="p-6 space-y-4">
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {videos.length > 0 ? (
           videos.map((video) => (
             <Card key={video._id} className="p-4">
               <CardContent>
-                {video.videoFile ? (
-                  <video
-                    src={video.videoFile}
-                    controls
-                    className="w-full h-40 object-cover rounded-md"
-                  />
-                ) : (
-                  <img
-                    src={video.thumbnail || "/default-thumbnail.jpg"}
-                    alt="Video Thumbnail"
-                    className="w-full h-40 object-cover rounded-md"
-                  />
-                )}
+                <div
+                  onClick={() => handleVideoClick(video)}
+                  className="cursor-pointer"
+                >
+                  {video.videoFile ? (
+                    <video
+                      src={video.videoFile}
+                      // controls
+                      className="w-full h-40 object-cover rounded-t-lg"
+                    />
+                  ) : (
+                    <img
+                      src={video.thumbnail || "/default-thumbnail.jpg"}
+                      alt="Video Thumbnail"
+                      className="w-full h-40 object-cover rounded-t-lg"
+                    />
+                  )}
+                </div>
 
                 <h3 className="font-semibold mt-2">{video.title}</h3>
                 <p className="text-gray-600 text-sm">{video.description}</p>
@@ -152,7 +173,7 @@ export default function UploadVideoPage() {
                   </div>
                   <div className="flex flex-end items-center gap-2">
                     <button onClick={() => addToPlaylist(video._id)}>
-                      Add to playlist
+                      Add playlist
                     </button>
                     <PlaylistModal
                       videoId={selectedVideoId}
@@ -162,7 +183,7 @@ export default function UploadVideoPage() {
                   </div>
                 </div>
 
-                <div className="mt-2">
+                <div className="my-2 gap-1 flex">
                   <input
                     type="text"
                     value={newComment[video._id] || ""}
@@ -177,7 +198,7 @@ export default function UploadVideoPage() {
                   />
                   <button
                     onClick={() => handleAddComment(video._id)}
-                    className="mt-1 bg-blue-500 text-white px-3 py-1 rounded"
+                    className="bg-blue-500 text-white px-2 py-1 rounded"
                   >
                     Comment
                   </button>
@@ -235,7 +256,15 @@ export default function UploadVideoPage() {
         ) : (
           <p>No videos found</p>
         )}
-        {/* Modal for selecting playlists */}
+
+        {isVideoModalOpen && selectedVideo && (
+          <VideoModal
+            video={selectedVideo}
+            isOpen={isVideoModalOpen}
+            onClose={() => setIsVideoModalOpen(false)}
+            onLike={handleLike}
+          />
+        )}
       </div>
     </div>
   );
