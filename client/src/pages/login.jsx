@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { loginUser } from "@/store/slices/auth/auth_slice";
 
 const Login = () => {
@@ -74,6 +74,7 @@ const Login = () => {
               <p className="text-red-500 text-sm text-center">{error}</p>
             )}
           </form>
+          <Link to="/register">Register</Link>
         </CardContent>
       </Card>
     </div>

@@ -1,29 +1,34 @@
 import axiosInstance from "@/utils/axiosInstance";
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
-
 // Fetch subscribed channels for a user
-export const fetchSubscribedChannels = createAsyncThunk(
-  "subscription/fetchSubscribedChannels",
-  async (userId, { rejectWithValue }) => {
+export const getSubscribedChannels = createAsyncThunk(
+  "subscription/getSubscribedChannels",
+  async (channelId, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get(`/subscriptions/u/${userId}`);
+      const response = await axiosInstance.get(`/subscriptions/c/${channelId}`);
       return response.data.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || "Failed to fetch");
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to fetch"
+      );
     }
   }
 );
 
 // Fetch subscribers of a channel
-export const fetchSubscribers = createAsyncThunk(
-  "subscription/fetchSubscribers",
-  async (channelId, { rejectWithValue }) => {
+export const getUserChannelSubscribers = createAsyncThunk(
+  "subscription/getUserChannelSubscribers",
+  async (subscriberId, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get(`/subscriptions/channel/c/${channelId}`);
+      const response = await axiosInstance.get(
+        `/subscriptions/u/${subscriberId}`
+      );
       return response.data.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || "Failed to fetch");
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to fetch"
+      );
     }
   }
 );
@@ -31,12 +36,16 @@ export const fetchSubscribers = createAsyncThunk(
 // Toggle subscription (Subscribe/Unsubscribe)
 export const toggleSubscription = createAsyncThunk(
   "subscription/toggleSubscription",
-  async (channelId, { getState, rejectWithValue }) => {
+  async (channelId, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`/subscriptions/toggle/${channelId}`);
+      const response = await axiosInstance.post(
+        `/subscriptions/c/${channelId}`
+      );
       return { channelId, message: response.data.message };
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || "Failed to toggle subscription");
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to toggle subscription"
+      );
     }
   }
 );
@@ -53,28 +62,28 @@ const subscriptionSlice = createSlice({
   extraReducers: (builder) => {
     builder
       // Fetch Subscribed Channels
-      .addCase(fetchSubscribedChannels.pending, (state) => {
+      .addCase(getSubscribedChannels.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchSubscribedChannels.fulfilled, (state, action) => {
+      .addCase(getSubscribedChannels.fulfilled, (state, action) => {
         state.loading = false;
         state.subscribedChannels = action.payload;
       })
-      .addCase(fetchSubscribedChannels.rejected, (state, action) => {
+      .addCase(getSubscribedChannels.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
 
       // Fetch Subscribers
-      .addCase(fetchSubscribers.pending, (state) => {
+      .addCase(getUserChannelSubscribers.pending, (state) => {
         state.loading = true;
       })
-      .addCase(fetchSubscribers.fulfilled, (state, action) => {
+      .addCase(getUserChannelSubscribers.fulfilled, (state, action) => {
         state.loading = false;
         state.subscribers = action.payload;
       })
-      .addCase(fetchSubscribers.rejected, (state, action) => {
+      .addCase(getUserChannelSubscribers.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
@@ -85,9 +94,14 @@ const subscriptionSlice = createSlice({
       })
       .addCase(toggleSubscription.fulfilled, (state, action) => {
         state.loading = false;
-        state.subscribedChannels = state.subscribedChannels.filter(
-          (channel) => channel._id !== action.payload.channelId
-        );
+        const { channelId } = action.payload;
+        if (state.subscribedChannels.includes(channelId)) {
+          state.subscribedChannels = state.subscribedChannels.filter(
+            (id) => id !== channelId
+          );
+        } else {
+          state.subscribedChannels.push(channelId);
+        }
       })
       .addCase(toggleSubscription.rejected, (state, action) => {
         state.loading = false;
