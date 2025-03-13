@@ -2,11 +2,11 @@ import axiosInstance from "@/utils/axiosInstance";
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
 // Fetch subscribed channels for a user
-export const fetchSubscribedChannels = createAsyncThunk(
-  "subscription/fetchSubscribedChannels",
-  async (userId, { rejectWithValue }) => {
+export const getSubscribedChannels = createAsyncThunk(
+  "subscription/getSubscribedChannels",
+  async (channelId, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get(`/subscriptions/u/${userId}`);
+      const response = await axiosInstance.get(`/subscriptions/c/${channelId}`);
       return response.data.data;
     } catch (error) {
       return rejectWithValue(
@@ -17,12 +17,12 @@ export const fetchSubscribedChannels = createAsyncThunk(
 );
 
 // Fetch subscribers of a channel
-export const fetchSubscribers = createAsyncThunk(
-  "subscription/fetchSubscribers",
-  async (channelId, { rejectWithValue }) => {
+export const getUserChannelSubscribers = createAsyncThunk(
+  "subscription/getUserChannelSubscribers",
+  async (subscriberId, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.get(
-        `/subscriptions/channel/c/${channelId}`
+        `/subscriptions/u/${subscriberId}`
       );
       return response.data.data;
     } catch (error) {
@@ -62,28 +62,28 @@ const subscriptionSlice = createSlice({
   extraReducers: (builder) => {
     builder
       // Fetch Subscribed Channels
-      .addCase(fetchSubscribedChannels.pending, (state) => {
+      .addCase(getSubscribedChannels.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchSubscribedChannels.fulfilled, (state, action) => {
+      .addCase(getSubscribedChannels.fulfilled, (state, action) => {
         state.loading = false;
         state.subscribedChannels = action.payload;
       })
-      .addCase(fetchSubscribedChannels.rejected, (state, action) => {
+      .addCase(getSubscribedChannels.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
 
       // Fetch Subscribers
-      .addCase(fetchSubscribers.pending, (state) => {
+      .addCase(getUserChannelSubscribers.pending, (state) => {
         state.loading = true;
       })
-      .addCase(fetchSubscribers.fulfilled, (state, action) => {
+      .addCase(getUserChannelSubscribers.fulfilled, (state, action) => {
         state.loading = false;
         state.subscribers = action.payload;
       })
-      .addCase(fetchSubscribers.rejected, (state, action) => {
+      .addCase(getUserChannelSubscribers.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })

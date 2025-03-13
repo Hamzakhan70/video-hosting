@@ -24,7 +24,6 @@ export default function UploadVideoPage() {
   const [videos, setVideos] = useState([]);
   const { likes } = useSelector((state) => state.likes);
   const [selectedVideo, setSelectedVideo] = useState(null);
-
   const { accessToken, user } = useSelector((state) => state.auth);
   const { comments, totalComments } = useSelector((state) => state.comments);
   const [newComment, setNewComment] = useState({});
@@ -51,7 +50,7 @@ export default function UploadVideoPage() {
 
         // Fetch comments for each video
         fetchedVideos.forEach((video) => dispatch(getVideoComments(video._id)));
-
+        console.log(fetchedVideos, "fetchedVideos");
         // Fetch liked videos
         const likedVideos = await dispatch(getLikedVideos(user._id)).unwrap();
 
@@ -121,12 +120,13 @@ export default function UploadVideoPage() {
     setSelectedVideo(video);
     setIsVideoModalOpen(true);
   };
+
   return (
-    <div className="p-6 space-y-4">
+    <div className="p-4 space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {videos.length > 0 ? (
           videos.map((video) => (
-            <Card key={video._id} className="p-4">
+            <Card key={video._id} className="p-2">
               <CardContent>
                 <div
                   onClick={() => handleVideoClick(video)}
@@ -136,7 +136,7 @@ export default function UploadVideoPage() {
                     <video
                       src={video.videoFile}
                       // controls
-                      className="w-full h-40 object-cover rounded-t-lg"
+                      className="w-full h-60 object-cover rounded-t-lg"
                     />
                   ) : (
                     <img
@@ -150,7 +150,7 @@ export default function UploadVideoPage() {
                 <h3 className="font-semibold mt-2">{video.title}</h3>
                 <p className="text-gray-600 text-sm">{video.description}</p>
 
-                <div className="flex justify-between gap-4 mt-2">
+                <div className="flex-col md:flex-row flex items-center justify-between gap-4 mt-2">
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleLike(video._id)}
@@ -183,7 +183,7 @@ export default function UploadVideoPage() {
                   </div>
                 </div>
 
-                <div className="my-2 gap-1 flex">
+                <div className="my-2 gap-1 flex-col md:flex-row flex items-center">
                   <input
                     type="text"
                     value={newComment[video._id] || ""}
@@ -194,7 +194,7 @@ export default function UploadVideoPage() {
                       }))
                     }
                     placeholder="Add a comment..."
-                    className="border px-2 py-1 w-full rounded"
+                    className="border px-1 py-1 w-full rounded"
                   />
                   <button
                     onClick={() => handleAddComment(video._id)}

@@ -19,14 +19,14 @@ import { logoutUser } from "@/store/slices/auth/auth_slice";
 import { addNewVideo } from "@/store/slices/video/video_slice";
 
 const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
-  const {  user } = useSelector((state) => {
+  const { user } = useSelector((state) => {
     return state.auth;
   });
   const [userAvatar, setUserAvatar] = useState(""); // Store user avatar in state
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
+  const [query, setQuery] = useState("");
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -63,19 +63,21 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     const formDataObj = new FormData();
     formDataObj.append("title", formData.title);
     formDataObj.append("description", formData.description);
-    
+
     if (formData.videoFile) {
       if (Array.isArray(formData.videoFile)) {
-        formData.videoFile.forEach((file) => formDataObj.append("videoFile", file));
+        formData.videoFile.forEach((file) =>
+          formDataObj.append("videoFile", file)
+        );
       } else {
         formDataObj.append("videoFile", formData.videoFile);
       }
     }
-    
+
     if (formData.thumbnail) {
       formDataObj.append("thumbnail", formData.thumbnail);
     }
@@ -83,7 +85,7 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
     try {
       await dispatch(addNewVideo(formDataObj)).unwrap();
       toast.success("Video uploaded successfully!");
-      
+
       // Reset form fields
       setFormData({
         title: "",
@@ -95,12 +97,25 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
       // Reset file input fields manually
       document.getElementById("videoFile").value = "";
       document.getElementById("thumbnail").value = "";
-      
     } catch (error) {
       toast.error(`Error uploading video: ${error.message || "Unknown error"}`);
     }
   };
-
+  const handleSearch = async () => {
+    // try {
+    //   const response = await fetch(
+    //     `http://localhost:8000/api/v1/videos/?query=${query}&sortBy=views&sortType=asc`
+    //   );
+    //   const data = await response.json();
+    //   if (response.ok) {
+    //     setVideos(data.videos); // Update the video list
+    //   } else {
+    //     console.error("Error fetching videos:", data.message);
+    //   }
+    // } catch (error) {
+    //   console.error("Error:", error);
+    // }
+  };
   // Update userAvatar when user changes
   useEffect(() => {
     if (user) {
@@ -131,10 +146,15 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
           type="text"
           placeholder="Search"
           className="bg-transparent outline-none w-full text-white px-2"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
         />
-        <button className="hover:text-gray-400">
-          <FaSearch className="text-black hover:text-gray-600" />
-        </button>
+        <div className="hover:text-gray-400">
+          <FaSearch
+            className="text-white hover:text-gray-600"
+            onClick={handleSearch}
+          />
+        </div>
       </div>
 
       {/* Right: Icons & Profile */}
@@ -151,77 +171,85 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
               <DialogTitle>Upload Video</DialogTitle>
             </DialogHeader>
             <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-      {/* Video Title */}
-      <div className="flex flex-col">
-        <label htmlFor="title" className="font-medium text-white">Video Title</label>
-        <input
-          type="text"
-          id="title"
-          name="title"
-          placeholder="Enter video title"
-          className="border p-2 rounded"
-          value={formData.title}
-          onChange={handleChange}
-          required
-        />
-      </div>
+              {/* Video Title */}
+              <div className="flex flex-col">
+                <label htmlFor="title" className="font-medium text-white">
+                  Video Title
+                </label>
+                <input
+                  type="text"
+                  id="title"
+                  name="title"
+                  placeholder="Enter video title"
+                  className="border p-2 rounded"
+                  value={formData.title}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-      {/* Video Description */}
-      <div className="flex flex-col">
-        <label htmlFor="description" className="font-medium text-white">Video Description</label>
-        <textarea
-          id="description"
-          name="description"
-          placeholder="Enter video description"
-          className="border p-2 rounded"
-          rows="3"
-          value={formData.description}
-          onChange={handleChange}
-        ></textarea>
-      </div>
+              {/* Video Description */}
+              <div className="flex flex-col">
+                <label htmlFor="description" className="font-medium text-white">
+                  Video Description
+                </label>
+                <textarea
+                  id="description"
+                  name="description"
+                  placeholder="Enter video description"
+                  className="border p-2 rounded"
+                  rows="3"
+                  value={formData.description}
+                  onChange={handleChange}
+                ></textarea>
+              </div>
 
-      {/* Video File Upload */}
-      <div className="flex flex-col">
-        <label htmlFor="videoFile" className="font-medium text-white">Upload Video</label>
-        <input
-          type="file"
-          id="videoFile"
-          name="videoFile"
-          className="border p-2 rounded"
-          onChange={handleFileChange}
-          multiple // Allow multiple video uploads
-          required
-        />
-      </div>
+              {/* Video File Upload */}
+              <div className="flex flex-col">
+                <label htmlFor="videoFile" className="font-medium text-white">
+                  Upload Video
+                </label>
+                <input
+                  type="file"
+                  id="videoFile"
+                  name="videoFile"
+                  className="border p-2 rounded"
+                  onChange={handleFileChange}
+                  multiple // Allow multiple video uploads
+                  required
+                />
+              </div>
 
-      {/* Thumbnail Upload */}
-      <div className="flex flex-col">
-        <label htmlFor="thumbnail" className="font-medium text-white">Upload Thumbnail</label>
-        <input
-          type="file"
-          id="thumbnail"
-          name="thumbnail"
-          className="border p-2 rounded"
-          onChange={handleFileChange}
-          required
-        />
-      </div>
+              {/* Thumbnail Upload */}
+              <div className="flex flex-col">
+                <label htmlFor="thumbnail" className="font-medium text-white">
+                  Upload Thumbnail
+                </label>
+                <input
+                  type="file"
+                  id="thumbnail"
+                  name="thumbnail"
+                  className="border p-2 rounded"
+                  onChange={handleFileChange}
+                  required
+                />
+              </div>
 
-      {/* Submit Button */}
-      <button
-        type="submit"
-        className="bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
-      >
-        Upload
-      </button>
-    </form>
+              {/* Submit Button */}
+              <button
+                type="submit"
+                className="bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+              >
+                Upload
+              </button>
+            </form>
           </DialogContent>
         </Dialog>
 
         {/* Notifications */}
-        <button className="text-xl hover:text-gray-400">
-          <FaBell className="text-black hover:text-gray-600" />
-        </button>
+        <div className="text-xl text-white hover:text-gray-400">
+          <FaBell className="text-white hover:text-gray-600" />
+        </div>
 
         {/* Right: Profile Dropdown */}
         <div className="relative">
