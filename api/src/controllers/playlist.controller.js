@@ -77,7 +77,7 @@ const getPlaylistById = asyncHandler(async (req, res, next) => {
 
 const addVideoToPlaylist = asyncHandler(async (req, res, next) => {
   const { playlistId, videoId } = req.params;
-
+console.log(playlistId,videoId,"000")
   if (
     !mongoose.Types.ObjectId.isValid(playlistId) ||
     !mongoose.Types.ObjectId.isValid(videoId)
@@ -103,6 +103,7 @@ const addVideoToPlaylist = asyncHandler(async (req, res, next) => {
       },
       { new: true }
     ).populate("videos");
+    console.log('i updated the playlist',{updatePlaylist})
     res
       .status(200)
       .json(
