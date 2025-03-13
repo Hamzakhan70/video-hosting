@@ -43,6 +43,7 @@ const getAllVideos = asyncHandler(async (req, res, next) => {
 
     // Fetch videos with filtering, sorting, and pagination
     const videos = await Video.find(filter)
+      .populate("owner", "username email avatar") // Populate owner details
       .sort({ [sortBy]: sortOrder }) // Dynamic sorting
       .skip((pageNumber - 1) * pageSize) // Skip for pagination
       .limit(pageSize); // Limit results
