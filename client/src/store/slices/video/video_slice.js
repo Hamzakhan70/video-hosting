@@ -19,7 +19,6 @@ export const addNewVideo = createAsyncThunk(
           "Content-Type": "multipart/form-data",
         },
       });
-console.log('this is response',response)
       return response.data;
     } catch (error) {
       console.error("Error uploading video:", error.response?.data || error.message);
