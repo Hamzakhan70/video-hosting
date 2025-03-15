@@ -1,6 +1,5 @@
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useEffect, useState } from "react";
-import { AiOutlineLike, AiFillLike } from "react-icons/ai";
 import { useDispatch, useSelector } from "react-redux";
 import { Card, CardContent } from "../ui/card";
 import {
@@ -9,24 +8,51 @@ import {
   toggleSubscription,
 } from "@/store/slices/subscription/subscriptionSlice";
 
-export default function VideoModal({ video, isOpen, onClose, onLike }) {
+export default function VideoModal({ video, isOpen, onClose }) {
   if (!video) return null;
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
-  const { subscribers, subscribedChannels, loading } = useSelector(
+  const { subscribedChannels, loading } = useSelector(
     (state) => state.subscription
   );
-  const isSubscribed = subscribedChannels.includes(video.owner._id);
 
-  const handleSubscription = () => {
-    dispatch(toggleSubscription(video.owner._id));
+  // Local state to ensure immediate UI update
+  const [isSubscribed, setIsSubscribed] = useState(false);
 
-    // dispatch(getSubscribedChannels(video.owner._id));
-  };
   useEffect(() => {
-    dispatch(getUserChannelSubscribers(user._id));
-    console.log(subscribers, "subscribers");
-  }, []);
+    if (video.owner?._id) {
+      setIsSubscribed(
+        subscribedChannels.some((sub) => sub.channel?._id === video.owner?._id)
+      );
+    }
+  }, [isSubscribed, video.owner?._id]);
+
+  useEffect(() => {
+    if (user?._id) {
+      dispatch(getUserChannelSubscribers(user._id));
+      dispatch(getSubscribedChannels(user._id));
+    }
+  }, [dispatch, user._id]);
+
+  const handleSubscription = async () => {
+    setIsSubscribed((prev) => !prev); // Optimistically update UI
+
+    try {
+      const response = await dispatch(
+        toggleSubscription(video.owner._id)
+      ).unwrap();
+
+      if (response.success) {
+        dispatch(getSubscribedChannels(user._id)); // Refresh actual data
+      } else {
+        setIsSubscribed((prev) => !prev); // Revert UI if API fails
+      }
+    } catch (error) {
+      setIsSubscribed((prev) => !prev); // Revert UI in case of error
+      console.error("Subscription toggle failed:", error);
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl text-white">
@@ -40,6 +66,7 @@ export default function VideoModal({ video, isOpen, onClose, onLike }) {
               className="w-full h-full rounded-lg object-cover"
             />
           </div>
+
           {/* User Profile */}
           <Card>
             <CardContent className="flex items-center p-4">

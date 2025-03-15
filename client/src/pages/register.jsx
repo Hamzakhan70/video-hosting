@@ -1,7 +1,8 @@
+
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -113,12 +114,13 @@ const Register = () => {
               />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              Register
+             {loading?"Loading...":" Register"}
             </Button>
             {error && (
               <p className="text-red-500 text-sm text-center">{error}</p>
             )}
           </form>
+             <Link to="/login">Login</Link>
         </CardContent>
       </Card>
     </div>

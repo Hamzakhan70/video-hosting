@@ -25,7 +25,7 @@ const getVideoComments = asyncHandler(async (req, res, next) => {
 
     // Fetch comments with pagination & sorting
     const comments = await Comment.find({ video: videoId })
-      .populate("owner", "name email") // Fetch user details
+      .populate("owner", "username email") // Fetch user details
       .sort({ createdAt: -1 }) // Most recent first
       .skip((page - 1) * limit)
       .limit(limit);

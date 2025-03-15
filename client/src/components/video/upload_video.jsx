@@ -47,15 +47,11 @@ export default function UploadVideoPage() {
       })
       .then(async (res) => {
         const fetchedVideos = res.data?.data.videos || [];
-
         // Fetch comments for each video
         fetchedVideos.forEach((video) => dispatch(getVideoComments(video._id)));
-        console.log(fetchedVideos, "fetchedVideos");
         // Fetch liked videos
         const likedVideos = await dispatch(getLikedVideos(user._id)).unwrap();
-
         // Update `isLiked` based on the liked videos
-
         const updatedVideos = fetchedVideos.map((video) => ({
           ...video,
           isLiked: likedVideos.data?.some((likedVideo) => {
@@ -150,7 +146,7 @@ export default function UploadVideoPage() {
                 <h3 className="font-semibold mt-2">{video.title}</h3>
                 <p className="text-gray-600 text-sm">{video.description}</p>
 
-                <div className="flex-col md:flex-row flex items-center justify-between gap-4 mt-2">
+                <div className="flex-col lg:flex-row flex items-center justify-between gap-4 mt-2">
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleLike(video._id)}
@@ -171,8 +167,11 @@ export default function UploadVideoPage() {
                       <FaRegComment /> {totalComments[video._id] || 0}
                     </button>
                   </div>
-                  <div className="flex flex-end items-center gap-2">
-                    <button onClick={() => addToPlaylist(video._id)}>
+                  <div className="flex lg:flex-row flex-col flex-end items-center gap-2">
+                    <button
+                      onClick={() => addToPlaylist(video._id)}
+                      className="w-full"
+                    >
                       Add playlist
                     </button>
                     <PlaylistModal

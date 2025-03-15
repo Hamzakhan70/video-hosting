@@ -1,10 +1,17 @@
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+
 import { useEffect, useState } from "react";
 import { FaUser, FaKey, FaCog, FaSignOutAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { FaSearch, FaVideo, FaBell } from "react-icons/fa";
 import { toast } from "react-hot-toast";
 import { IoMenu } from "react-icons/io5";
-
 import {
   Dialog,
   DialogContent,
@@ -13,7 +20,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import ytLogo from "../assets/yt-logo.png";
-
 import { useDispatch, useSelector } from "react-redux";
 import { logoutUser } from "@/store/slices/auth/auth_slice";
 import { addNewVideo } from "@/store/slices/video/video_slice";
@@ -22,7 +28,11 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
   const { user } = useSelector((state) => {
     return state.auth;
   });
-  const [userAvatar, setUserAvatar] = useState(""); // Store user avatar in state
+  const { loading } = useSelector((state) => {
+    return state.video;
+  });
+  const [isOpen, setIsOpen] = useState(false);
+  const [userAvatar, setUserAvatar] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -69,15 +79,8 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
     formDataObj.append("description", formData.description);
 
     if (formData.videoFile) {
-      if (Array.isArray(formData.videoFile)) {
-        formData.videoFile.forEach((file) =>
-          formDataObj.append("videoFile", file)
-        );
-      } else {
-        formDataObj.append("videoFile", formData.videoFile);
-      }
+      formDataObj.append("videoFile", formData.videoFile);
     }
-
     if (formData.thumbnail) {
       formDataObj.append("thumbnail", formData.thumbnail);
     }
@@ -85,22 +88,20 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
     try {
       await dispatch(addNewVideo(formDataObj)).unwrap();
       toast.success("Video uploaded successfully!");
-
-      // Reset form fields
       setFormData({
         title: "",
         description: "",
         videoFile: null,
         thumbnail: null,
       });
-
-      // Reset file input fields manually
       document.getElementById("videoFile").value = "";
       document.getElementById("thumbnail").value = "";
+      setIsOpen(false);
     } catch (error) {
       toast.error(`Error uploading video: ${error.message || "Unknown error"}`);
     }
   };
+
   const handleSearch = async () => {
     // try {
     //   const response = await fetch(
@@ -160,7 +161,7 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
       {/* Right: Icons & Profile */}
       <div className="flex items-center space-x-4">
         {/* Video Upload Modal Trigger */}
-        <Dialog>
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <button className="hidden sm:block text-xl hover:text-gray-400">
               <FaVideo className="text-white hover:text-gray-600" />
@@ -240,55 +241,49 @@ const Navbar = ({ toggleSidebar, isSidebarOpen }) => {
                 type="submit"
                 className="bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
               >
-                Upload
+                {loading ? "Uploading..." : "Upload"}
               </button>
             </form>
           </DialogContent>
         </Dialog>
 
         {/* Notifications */}
-        <div className="text-xl text-white hover:text-gray-400">
-          <FaBell className="text-white hover:text-gray-600" />
-        </div>
 
+        <button className="hidden bg-transparent sm:block text-xl hover:text-gray-400">
+          <FaBell className="text-white " />
+        </button>
         {/* Right: Profile Dropdown */}
-        <div className="relative">
-          <img
-            src={userAvatar || "https://via.placeholder.com/40"}
-            alt="User"
-            className="h-8 w-8 rounded-full cursor-pointer border border-gray-500"
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          />
+        <DropdownMenu className="bg-slate-300">
+          {/* Avatar Button (Trigger) */}
+          <DropdownMenuTrigger asChild>
+            <Avatar className="h-8 w-8 cursor-pointer border border-gray-500">
+              <AvatarImage
+                src={userAvatar || "https://via.placeholder.com/40"}
+                alt="User"
+              />
+              <AvatarFallback>U</AvatarFallback>
+            </Avatar>
+          </DropdownMenuTrigger>
 
-          {isDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white text-black shadow-lg rounded-lg overflow-hidden">
-              <button
-                onClick={() => navigate("/profile")}
-                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-200 w-full text-left"
-              >
-                <FaUser /> Profile
-              </button>
-              <button
-                onClick={() => navigate("/userdashboard")}
-                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-200 w-full text-left"
-              >
-                <FaKey /> Dashboard
-              </button>
-              <button
-                onClick={() => navigate("/settings")}
-                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-200 w-full text-left"
-              >
-                <FaCog /> Settings
-              </button>
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-2 px-4 py-2 hover:bg-red-500 hover:text-white w-full text-left"
-              >
-                <FaSignOutAlt /> Logout
-              </button>
-            </div>
-          )}
-        </div>
+          {/* Dropdown Content */}
+          <DropdownMenuContent align="end" className="text-black w-48">
+            <DropdownMenuItem onClick={() => navigate("/profile")}>
+              <FaUser className="mr-2" /> Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/userdashboard")}>
+              <FaKey className="mr-2" /> Dashboard
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/settings")}>
+              <FaCog className="mr-2" /> Settings
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={handleLogout}
+              className="text-red-500 focus:bg-red-100"
+            >
+              <FaSignOutAlt className="mr-2" /> Logout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );

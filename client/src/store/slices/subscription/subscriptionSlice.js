@@ -94,15 +94,23 @@ const subscriptionSlice = createSlice({
       })
       .addCase(toggleSubscription.fulfilled, (state, action) => {
         state.loading = false;
+
         const { channelId } = action.payload;
-        if (state.subscribedChannels.includes(channelId)) {
-          state.subscribedChannels = state.subscribedChannels.filter(
-            (id) => id !== channelId
-          );
+
+        // Find if the channel is already subscribed
+        const index = state.subscribedChannels.findIndex(
+          (sub) => sub.channel?._id === channelId
+        );
+
+        if (index !== -1) {
+          // Unsubscribe (Remove from array)
+          state.subscribedChannels.splice(index, 1);
         } else {
-          state.subscribedChannels.push(channelId);
+          // Subscribe (Add to array)
+          state.subscribedChannels.push({ channel: { _id: channelId } });
         }
       })
+
       .addCase(toggleSubscription.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
